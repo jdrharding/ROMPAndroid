@@ -39,7 +39,7 @@ namespace ROMPCheckIn
 			var geofencingEvent = GeofencingEvent.FromIntent (intent);
 			if (geofencingEvent.HasError) {
 				int errorCode = geofencingEvent.ErrorCode;
-				Log.Error (Constants.TAG, "Location Services error: " + errorCode);
+				Log.Error ("Constants.TAG", "Location Services error: " + errorCode);
 			} else {
 				// Get the type of Geofence transition (i.e. enter or exit in this sample).
 				int transitionType = geofencingEvent.GeofenceTransition;
@@ -47,25 +47,26 @@ namespace ROMPCheckIn
 				// notification to prompt him/her to check in
 				if (transitionType == Geofence.GeofenceTransitionEnter) {
 					// Connect to the Google Api service in preparation for sending a DataItem
-					mGoogleApiClient.BlockingConnect (Constants.CONNECTION_TIME_OUT_MS, TimeUnit.Milliseconds);
+					mGoogleApiClient.BlockingConnect (500, TimeUnit.Milliseconds);
 					// Get the geofence ID triggered. Note that only one geofence can be triggered at a time in this example, but in some cases
 					// you might want to consider the full list of geofences triggered
 					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;
 					// Create a DataItem with this geofence's id. The wearable can use this to create a notification
-					PutDataMapRequest putDataMapRequest = PutDataMapRequest.Create (Constants.GEOFENCE_DATA_ITEM_PATH);
-					putDataMapRequest.DataMap.PutString (Constants.KEY_GEOFENCE_ID, triggeredGeofenceId);
+					PutDataMapRequest putDataMapRequest = PutDataMapRequest.Create ("Constants.GEOFENCE_DATA_ITEM_PATH");
+					putDataMapRequest.DataMap.PutString ("Constants.KEY_GEOFENCE_ID", triggeredGeofenceId);
 					if (mGoogleApiClient.IsConnected) {
 						WearableClass.DataApi.PutDataItem (
 							mGoogleApiClient, putDataMapRequest.AsPutDataRequest ()).Await ();
 					} else {
-						Log.Error (Constants.TAG, "Failed to send data item: " + putDataMapRequest +
+						Log.Error ("Constants.TAG", "Failed to send data item: " + putDataMapRequest +
 							" - disconnected from Google Play Services");
 					}
 					mGoogleApiClient.Disconnect ();
 				} else if (Geofence.GeofenceTransitionExit == transitionType) {
 					// Delete the data item when leaving a geofence region
-					mGoogleApiClient.BlockingConnect (Constants.CONNECTION_TIME_OUT_MS, TimeUnit.Milliseconds);
-					WearableClass.DataApi.DeleteDataItems (mGoogleApiClient, Constants.GEOFENCE_DATA_ITEM_URI).Await ();
+					mGoogleApiClient.BlockingConnect (500, TimeUnit.Milliseconds);
+					Android.Net.Uri uri = new Android.Net.Uri.Builder().Path ("Constants.GEOFENCE_DATA_ITEM_URI").Build();
+					WearableClass.DataApi.DeleteDataItems (mGoogleApiClient, uri).Await ();
 					mGoogleApiClient.Disconnect ();
 				}
 			}

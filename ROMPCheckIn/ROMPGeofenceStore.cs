@@ -30,7 +30,7 @@ namespace ROMPCheckIn
 		public ROMPGeofence GetGeofence(String id)
 		{
 			// Get the latitude for the geofence identified by id, or INVALID_FLOAT_VALUE if it doesn't exist (similarly for the other values that follow)
-			double lat = mPrefs.GetFloat (GetGeofenceFieldKey (id, Constants.KEY_LATITUDE), Constants.INVALID_FLOAT_VALUE);
+			/*double lat = mPrefs.GetFloat (GetGeofenceFieldKey (id, Constants.KEY_LATITUDE), Constants.INVALID_FLOAT_VALUE);
 			double lng = mPrefs.GetFloat (GetGeofenceFieldKey (id, Constants.KEY_LONGITUDE), Constants.INVALID_FLOAT_VALUE);
 			float radius = mPrefs.GetFloat (GetGeofenceFieldKey (id, Constants.KEY_RADIUS), Constants.INVALID_INT_VALUE);
 			long expirationDuration = mPrefs.GetLong (GetGeofenceFieldKey (id, Constants.KEY_EXPIRATION_DURATION), Constants.INVALID_LONG_VALUE);
@@ -44,7 +44,7 @@ namespace ROMPCheckIn
 				&& transitionType != Constants.INVALID_INT_VALUE)
 				return new ROMPGeofence (id, lat, lng, radius, expirationDuration, transitionType);
 
-			// Otherwise return null
+			// Otherwise return null*/
 			return null;
 		}
 
@@ -57,11 +57,12 @@ namespace ROMPCheckIn
 			// Get a SharedPreferences editor instance. Among other things, SharedPreferences ensures that updates are atomic and non-concurrent
 			ISharedPreferencesEditor prefs = mPrefs.Edit();
 			// Write the geofence values to SharedPreferences 
-			prefs.PutFloat(GetGeofenceFieldKey(id, Constants.KEY_LATITUDE), (float) geofence.Latitude);
+			/*prefs.PutFloat(GetGeofenceFieldKey(id, Constants.KEY_LATITUDE), (float) geofence.Latitude);
 			prefs.PutFloat(GetGeofenceFieldKey(id, Constants.KEY_LONGITUDE), (float) geofence.Longitude);
 			prefs.PutFloat (GetGeofenceFieldKey (id, Constants.KEY_RADIUS), geofence.Radius);
 			prefs.PutLong (GetGeofenceFieldKey (id, Constants.KEY_EXPIRATION_DURATION), geofence.ExpirationDuration);
 			prefs.PutInt (GetGeofenceFieldKey (id, Constants.KEY_TRANSITION_TYPE), geofence.TransitionType);
+			*/
 			// Commit the changes
 			prefs.Commit ();
 		}
@@ -73,7 +74,8 @@ namespace ROMPCheckIn
 		/// <param name="id">The ID of a Geofence object</param>
 		/// <param name="fieldName">The field represented by the key</param>
 		private string GetGeofenceFieldKey(String id, String fieldName) {
-			return Constants.KEY_PREFIX + "_" + id + "_" + fieldName;
+			return "";
+			//return Constants.KEY_PREFIX + "_" + id + "_" + fieldName;
 		}
 	}
 }
