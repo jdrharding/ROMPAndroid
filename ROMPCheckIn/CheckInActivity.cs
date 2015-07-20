@@ -62,6 +62,11 @@ namespace ROMPCheckIn
 		{
 			base.OnCreate (bundle);
 
+			mGeofenceStorage = new ROMPGeofenceStore (this);
+			geofenceList = new List<IGeofence> ();
+			mInProgress = false;
+
+
 			// Create your application here
 		}
 

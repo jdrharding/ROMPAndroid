@@ -22,7 +22,7 @@ namespace ROMPCheckIn
 		{
 			base.OnCreate ();
 			mGoogleApiClient = new GoogleApiClientBuilder (this)
-				.AddApi (WearableClass.API)
+				.AddApi(WearableClass.API)
 				.AddConnectionCallbacks (this)
 				.AddOnConnectionFailedListener (this)
 				.Build ();

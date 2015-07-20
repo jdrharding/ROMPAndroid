@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.IO;
 using System.Diagnostics;
+using ROMPCheckIn.cms.romponline.com;
 
 using Android.App;
 using Android.Content;
@@ -37,33 +38,24 @@ namespace ROMPCheckIn
 				string email = txtUsername.Text;
 				Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
 				Match match = regex.Match(email);
-
-				if (!match.Success){
-					Android.Widget.Toast.MakeText(this, "Not a valid Email Address", Android.Widget.ToastLength.Short).Show();
+				if (string.IsNullOrEmpty(txtPassword.Text) || string.IsNullOrEmpty(txtUsername.Text)) {
+					Android.Widget.Toast.MakeText(this, "Please Provide a Username and Password.", Android.Widget.ToastLength.Short).Show();
+				} else if (!match.Success){
+					Android.Widget.Toast.MakeText(this, "Not a valid Email Address.", Android.Widget.ToastLength.Short).Show();
 				} else {
-					var request = HttpWebRequest.Create(string.Format(@"http://www.romponline.com/", rxcui));
-					request.ContentType = "application/xml";
-					request.Method = "GET";
 
-					using (HttpWebResponse response = request.GetResponse() as HttpWebResponse)
-					{
-						if (response.StatusCode != HttpStatusCode.OK)
-							Console.Out.WriteLine("Error fetching data. Server returned status code: {0}", response.StatusCode);
-						using (StreamReader reader = new StreamReader(response.GetResponseStream()))
-						{
-							var content = reader.ReadToEnd();
-							if(string.IsNullOrWhiteSpace(content)) {
-								Console.Out.WriteLine("Response contained empty body...");
-							}
-							else {
-								Console.Out.WriteLine("Response Body: \r\n {0}", content);
-							}
-						}
+					var locSvc = new ROMPLocation();
+					var loginResp = new LoginResponse();
+					loginResp = locSvc.LearnerLogin(txtUsername.Text, txtPassword.Text);
+					if (loginResp.Success) {
+						var nextActivity = new Intent(this, typeof(ChooseModeActivity));
+						nextActivity.PutExtra("SessionKey", loginResp.SessionKey);
+						StartActivity(nextActivity);
+						Finish();
+					} else {
+						Android.Widget.Toast.MakeText(this, "Login Failed. Please Try Again.", Android.Widget.ToastLength.Short).Show();
 					}
 				}
-				//if (txtPassword.Text.Length
-				var nextActivity = new Intent(this, typeof(ChooseModeActivity));
-
 			};
 
 		}

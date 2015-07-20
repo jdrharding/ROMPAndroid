@@ -19,7 +19,7 @@
         android:text="Passive Mode"
         android:layout_width="135.4dp"
         android:layout_height="wrap_content"
-        android:id="@+id/checkBox1"
+        android:id="@+id/cbPassive"
         android:textColor="#ff000000"
         android:layout_gravity="center"
         android:layout_marginTop="40dp" />
@@ -37,7 +37,7 @@
         android:text="Active Mode"
         android:layout_width="126.2dp"
         android:layout_height="wrap_content"
-        android:id="@+id/checkBox2"
+        android:id="@+id/cbActive"
         android:textColor="#ff000000"
         android:layout_gravity="center"
         android:layout_marginTop="40dp" />
@@ -55,7 +55,7 @@
         android:text="Choose Mode"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:id="@+id/button1"
+        android:id="@+id/btnChoose"
         android:layout_gravity="center"
         android:layout_marginTop="90.1dp" />
 </LinearLayout>

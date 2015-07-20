@@ -5,7 +5,7 @@
     android:layout_height="fill_parent"
     android:background="#ff7f7f7f">
     <TextView
-        android:text="Click the button below to Check In at your current facility. If you attempt to check in while not within a 1km radius of the facility, it will not be recorded."
+        android:text="When you enter a 1km radius surrounding the facility, this application will Check In for you. It will only check in once until you leave the premises and log the next time you enter."
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -13,13 +13,6 @@
         android:layout_marginTop="100dp"
         android:gravity="center"
         android:textColor="#ff000000" />
-    <Button
-        android:text="Check In"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/button1"
-        android:layout_marginTop="50dp"
-        android:layout_gravity="center" />
     <TextView
         android:text=""
         android:textAppearance="?android:attr/textAppearanceMedium"

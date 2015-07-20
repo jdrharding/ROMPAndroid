@@ -2,12 +2,14 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Android.SelectDevice" />
   <MonoDevelop.Ide.Workbench ActiveDocument="ROMPCheckIn\MainActivity.cs">
     <Files>
-      <File FileName="ROMPCheckIn\MainActivity.cs" Line="22" Column="3" />
+      <File FileName="ROMPCheckIn\MainActivity.cs" Line="38" Column="6" />
+      <File FileName="ROMPCheckIn\Web References\cms.romponline.com\Reference.cs" Line="1" Column="1" />
+      <File FileName="ROMPCheckIn\GeofenceTransitionsIntentService.cs" Line="34" Column="65" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.ROMPCheckIn AndroidDesignerPreferredDevice="Nexus 4" />
+  <MonoDevelop.Ide.ItemProperties.ROMPCheckIn AndroidDesignerPreferredDevice="Nexus 4" AndroidDeviceId-Debug="emulator-5554" />
 </Properties>
