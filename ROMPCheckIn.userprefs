@@ -1,14 +1,19 @@
 ﻿<Properties StartupItem="ROMPCheckIn\ROMPCheckIn.csproj">
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Android.SelectDevice" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="ROMPCheckIn\MainActivity.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Android.9494accc" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="ROMPCheckIn\CheckInActivity.cs">
     <Files>
-      <File FileName="ROMPCheckIn\MainActivity.cs" Line="38" Column="6" />
-      <File FileName="ROMPCheckIn\Web References\cms.romponline.com\Reference.cs" Line="1" Column="1" />
-      <File FileName="ROMPCheckIn\GeofenceTransitionsIntentService.cs" Line="34" Column="65" />
+      <File FileName="ROMPCheckIn\MainActivity.cs" Line="27" Column="4" />
+      <File FileName="ROMPCheckIn\ChooseModeActivity.cs" Line="60" Column="10" />
+      <File FileName="ROMPCheckIn\CheckInActivity.cs" Line="42" Column="32" />
+      <File FileName="ROMPCheckIn\CheckInPassiveActivity.cs" Line="33" Column="27" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="D:\Development\ROMPAndroid\ROMPCheckIn\MainActivity.cs" line="65" column="1" />
+      <Breakpoint file="D:\Development\ROMPAndroid\ROMPCheckIn\ChooseModeActivity.cs" line="56" column="1" />
+      <Breakpoint file="D:\Development\ROMPAndroid\ROMPCheckIn\CheckInActivity.cs" line="42" column="1" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.ItemProperties.ROMPCheckIn AndroidDesignerPreferredDevice="Nexus 4" AndroidDeviceId-Debug="emulator-5554" />

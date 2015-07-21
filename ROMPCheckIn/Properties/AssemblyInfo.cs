@@ -6,11 +6,11 @@ using Android.App;
 // Change them to the values specific to your project.
 
 [assembly: AssemblyTitle ("ROMPCheckIn")]
-[assembly: AssemblyDescription ("")]
+[assembly: AssemblyDescription ("ROMP Medical Program Check In Application")]
 [assembly: AssemblyConfiguration ("")]
-[assembly: AssemblyCompany ("")]
+[assembly: AssemblyCompany ("JDRHarding Development")]
 [assembly: AssemblyProduct ("")]
-[assembly: AssemblyCopyright ("Jake")]
+[assembly: AssemblyCopyright ("JDRHarding Development")]
 [assembly: AssemblyTrademark ("")]
 [assembly: AssemblyCulture ("")]
 

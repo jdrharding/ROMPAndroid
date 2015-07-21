@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ROMPCheckIn.cms.romponline.com;
 
 using Android.App;
 using Android.Content;
@@ -10,100 +11,108 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
-using Android.Gms.Location;
 using Android.Util;
 using Android.Gms.Common.Apis;
 using Android.Gms.Common;
+using Android.Locations;
+
 
 namespace ROMPCheckIn
 {
 	[Activity (Label = "CheckInActivity")]			
-	public class CheckInActivity : Activity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener
+	public class CheckInActivity : Activity, ILocationListener
 	{
-		List<IGeofence> geofenceList;
 
-		// Persistent storage for geofences
-		ROMPGeofenceStore mGeofenceStorage;
-
-		IGoogleApiClient apiClient;
-		// Stores the PendingIntent used to request geofence monitoring
-		PendingIntent geofenceRequestIntent;
-
-		// Defines the allowable request types (in this example, we only add geofences)
-		enum RequestType { Add }
-		RequestType mRequestType;
-		// Flag that indicates if a request is underway
-		bool mInProgress;
-
-		bool IsGooglePlayServicesAvailable
-		{
-			get {
-				int resultCode = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable (this);
-				if (resultCode == ConnectionResult.Success) {
-					if (Log.IsLoggable ("Tag", LogPriority.Debug)) {
-						Log.Debug ("Tag", "Google Play services is available");
-					}
-					return true;
-				} else {
-					Log.Error ("Tag", "Google Play services is unavailable");
-					return false;
-				}
-			}
-		}
-
-		PendingIntent GeofenceTransitionPendingIntent {
-			get {
-				var intent = new Intent (this, typeof(GeofenceTransitionsIntentService));
-				return PendingIntent.GetService (this, 0, intent, PendingIntentFlags.UpdateCurrent);
-			}
-		}
+		Location _currentLocation;
+		LocationManager _locationManager;
+		String _locationProvider;
+		FacilityCoordinates[] myFacilities;
 
 		protected override void OnCreate (Bundle bundle)
 		{
+			RequestWindowFeature(WindowFeatures.NoTitle);
 			base.OnCreate (bundle);
+			SetContentView (Resource.Layout.CheckIn);
+			string sessionKey = Intent.GetStringExtra ("SessionKey");
+			var locSvc = new ROMPLocation ();
+			//myFacilities[] = new FacilityCoordinates();
+			myFacilities = locSvc.GetLocations (sessionKey);
+			FindViewById<TextView>(Resource.Id.btnCheckIn).Click += btnCheckIn_OnClick;
 
-			mGeofenceStorage = new ROMPGeofenceStore (this);
-			geofenceList = new List<IGeofence> ();
-			mInProgress = false;
-
-
-			// Create your application here
+			InitializeLocationManager();
 		}
 
-
-
-		public void OnConnectionFailed(Android.Gms.Common.ConnectionResult result)
+		void InitializeLocationManager()
 		{
-			mInProgress = false;
+			_locationManager = (LocationManager)GetSystemService(LocationService);
+			Criteria criteriaForLocationService = new Criteria
+			{
+				Accuracy = Accuracy.Fine
+			};
+			IList<string> acceptableLocationProviders = _locationManager.GetProviders(criteriaForLocationService, true);
 
-			if (result.HasResolution) {
-				try {
-					result.StartResolutionForResult (this, 1);
-				} catch (Exception ex) {
-					Log.Error ("ERROR", "Exception while resolving connection error.", ex);
-				}
+			if (acceptableLocationProviders.Any())
+			{
+				_locationProvider = acceptableLocationProviders.First();
+			}
+			else
+			{
+				_locationProvider = String.Empty;
+			}
+		}
+
+		public void OnLocationChanged(Location location) {
+			_currentLocation = location;
+		}
+
+		async void btnCheckIn_OnClick(object sender, EventArgs eventArgs)
+		{
+			if (_currentLocation == null) {
+				var myHandler = new Handler ();
+				myHandler.Post (() => {
+					Toast.MakeText (this, "Can't determine the current location.", ToastLength.Long).Show ();
+				});
+				return;
 			} else {
-				int errorCode = result.ErrorCode;
-				Log.Error ("ERROR", "Connection to Google Play Services Failed with Code " + errorCode);
+				string sessionKey = Intent.GetStringExtra ("SessionKey");
+				string absResult = "You Are Not Within A Specified Zone.";
+				foreach (FacilityCoordinates fc in myFacilities) {
+					double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * fc.Latitude / 180) + 
+						Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * fc.Latitude / 180) * Math.Cos((_currentLocation.Longitude - fc.Longitude) * Math.PI / 180)  * 180 / Math.PI );
+					if (distance <= 1.1) {
+						var locSvc = new ROMPLocation ();
+						string result = locSvc.CheckIn(sessionKey, fc.LocationID, 0);
+						if (result == "Success"){
+							absResult = "Check In Successful";
+						} else {
+							absResult = "An Unexpected Error Occurred. Try Again";
+						}
+					}
+				}
+				var myHandler = new Handler ();
+				myHandler.Post (() => {
+					Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+				});
+				//locSvc.CheckIn(sessionKey,
 			}
 		}
 
-		public void OnConnectionSuspended(int i)
+		public void OnProviderDisabled(string provider) {}
+
+		public void OnProviderEnabled(string provider) {}
+
+		public void OnStatusChanged(string provider, Availability status, Bundle extras) {}
+
+		protected override void OnResume()
 		{
+			base.OnResume();
+			_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this);
 		}
 
-		public void OnConnected(Bundle connectionHint)
+		protected override void OnPause()
 		{
-			if (mRequestType == RequestType.Add) {
-				geofenceRequestIntent = GeofenceTransitionPendingIntent;
-				LocationServices.GeofencingApi.AddGeofences (apiClient, geofenceList, geofenceRequestIntent);
-			}
-		}
-
-		public void OnDisconnected()
-		{
-			mInProgress = false;
-			apiClient = null;
+			base.OnPause();
+			_locationManager.RemoveUpdates(this);
 		}
 	}
 }

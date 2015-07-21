@@ -35,12 +35,14 @@
         android:textColor="#ff000000"
         android:layout_marginLeft="15.0dp" />
     <EditText
+        android:inputType="textEmailAddress"
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:id="@+id/txtUsername"
         android:background="#ffffffff"
         android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp" />
+        android:layout_marginRight="15dp"
+        android:textColor="#ff000000" />
     <TextView
         android:text="Password:"
         android:textAppearance="?android:attr/textAppearanceMedium"
@@ -57,7 +59,8 @@
         android:id="@+id/txtPassword"
         android:layout_marginRight="15dp"
         android:layout_marginLeft="15dp"
-        android:background="#ffffffff" />
+        android:background="#ffffffff"
+        android:textColor="#ff000000" />
     <Button
         android:text="Login"
         android:layout_width="200dp"
