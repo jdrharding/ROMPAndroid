@@ -24,6 +24,8 @@ namespace ROMPCheckIn
 			SetContentView (Resource.Layout.ChooseMode);
 			try {
 				string sessionKey = Intent.GetStringExtra ("SessionKey");
+				int groupID = Intent.GetIntExtra ("GroupID", 0);
+				int userID = Intent.GetIntExtra ("UserID", 0);
 				var locSvc = new ROMPLocation ();
 				Button button = FindViewById<Button> (Resource.Id.btnChoose);
 				CheckBox cbpassive = FindViewById<CheckBox> (Resource.Id.cbPassive);
@@ -45,11 +47,15 @@ namespace ROMPCheckIn
 					if (cbactive.Checked) {
 						var nextActivity = new Intent(this, typeof(CheckInActivity));
 						nextActivity.PutExtra("SessionKey", sessionKey);
+						nextActivity.PutExtra("GroupID", groupID);
+						nextActivity.PutExtra("UserID", userID);
 						StartActivity(nextActivity);
 						Finish();
 					} else if (cbpassive.Checked) {
 						var nextActivity = new Intent(this, typeof(CheckInPassiveActivity));
 						nextActivity.PutExtra("SessionKey", sessionKey);
+						nextActivity.PutExtra("GroupID", groupID);
+						nextActivity.PutExtra("UserID", userID);
 						StartActivity(nextActivity);
 						Finish();
 					} else {
@@ -61,6 +67,10 @@ namespace ROMPCheckIn
 					}
 				};
 			} catch (Exception e) {
+				var myHandler = new Handler();
+				myHandler.Post(() => {
+					Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
+				});
 				System.Diagnostics.Debug.Write (e.Message);
 			}
 		}

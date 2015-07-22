@@ -1,19 +1,17 @@
 ﻿<Properties StartupItem="ROMPCheckIn\ROMPCheckIn.csproj">
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Android.9494accc" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="ROMPCheckIn\CheckInActivity.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" PreferredExecutionTarget="Android.SelectDevice" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="ROMPCheckIn\GeofenceTransitionsIntentService.cs">
     <Files>
-      <File FileName="ROMPCheckIn\MainActivity.cs" Line="27" Column="4" />
-      <File FileName="ROMPCheckIn\ChooseModeActivity.cs" Line="60" Column="10" />
-      <File FileName="ROMPCheckIn\CheckInActivity.cs" Line="42" Column="32" />
-      <File FileName="ROMPCheckIn\CheckInPassiveActivity.cs" Line="33" Column="27" />
+      <File FileName="ROMPCheckIn\MainActivity.cs" Line="74" Column="8" />
+      <File FileName="ROMPCheckIn\ChooseModeActivity.cs" Line="72" Column="51" />
+      <File FileName="ROMPCheckIn\CheckInActivity.cs" Line="92" Column="22" />
+      <File FileName="ROMPCheckIn\CheckInPassiveActivity.cs" Line="83" Column="92" />
+      <File FileName="ROMPCheckIn\GeofenceTransitionsIntentService.cs" Line="48" Column="28" />
+      <File FileName="ROMPCheckIn\Web References\cms.romponline.com\Reference.cs" Line="12" Column="18" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="D:\Development\ROMPAndroid\ROMPCheckIn\MainActivity.cs" line="65" column="1" />
-      <Breakpoint file="D:\Development\ROMPAndroid\ROMPCheckIn\ChooseModeActivity.cs" line="56" column="1" />
-      <Breakpoint file="D:\Development\ROMPAndroid\ROMPCheckIn\CheckInActivity.cs" line="42" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.ItemProperties.ROMPCheckIn AndroidDesignerPreferredDevice="Nexus 4" AndroidDeviceId-Debug="emulator-5554" />

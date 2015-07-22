@@ -19,7 +19,7 @@ using Android.Gms.Common;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMPCheckIn", MainLauncher = true, Icon = "@drawable/icon")]
+	[Activity (Label = "ROMP Check-In", MainLauncher = true, Icon = "@drawable/icon")]
 	public class MainActivity : Activity
 	{
 		protected override void OnCreate (Bundle bundle)
@@ -55,10 +55,21 @@ namespace ROMPCheckIn
 						var loginResp = new LoginResponse();
 						loginResp = locSvc.LearnerLogin(txtUsername.Text, txtPassword.Text);
 						if (loginResp.Success) {
-							var nextActivity = new Intent(this, typeof(ChooseModeActivity));
-							nextActivity.PutExtra("SessionKey", loginResp.SessionKey);
-							StartActivity(nextActivity);
-							Finish();
+							if (loginResp.GroupID <= 2) {
+								var nextActivity = new Intent(this, typeof(ChooseModeActivity));
+								nextActivity.PutExtra("SessionKey", loginResp.SessionKey);
+								nextActivity.PutExtra("GroupID", loginResp.GroupID);
+								nextActivity.PutExtra("UserID", loginResp.UserID);
+								StartActivity(nextActivity);
+								Finish();
+							} else {
+								var nextActivity = new Intent(this, typeof(CheckInActivity));
+								nextActivity.PutExtra("SessionKey", loginResp.SessionKey);
+								nextActivity.PutExtra("GroupID", loginResp.GroupID);
+								nextActivity.PutExtra("UserID", loginResp.UserID);
+								StartActivity(nextActivity);
+								Finish();
+							}
 						} else {
 							var myHandler = new Handler();
 							myHandler.Post(() => {
@@ -66,6 +77,10 @@ namespace ROMPCheckIn
 							});
 						}
 					} catch (Exception e) {
+						var myHandler = new Handler();
+						myHandler.Post(() => {
+							Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
+						});
 						System.Diagnostics.Debug.Write(e.Message);
 					}
 				}

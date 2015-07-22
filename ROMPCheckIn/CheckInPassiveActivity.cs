@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ROMPCheckIn.cms.romponline.com;
 
 using Android.App;
 using Android.Content;
@@ -31,7 +32,6 @@ namespace ROMPCheckIn
 
 		// Defines the allowable request types (in this example, we only add geofences)
 		enum RequestType { Add }
-
 		RequestType mRequestType;
 		// Flag that indicates if a request is underway
 		bool mInProgress;
@@ -69,8 +69,19 @@ namespace ROMPCheckIn
 			geofenceList = new List<IGeofence> ();
 			mInProgress = false;
 
-
 			// Create your application here
+		}
+
+		public void CreateGeofences ()
+		{
+			string sessionKey = Intent.GetStringExtra ("SessionKey");
+			int groupID = Intent.GetIntExtra ("GroupID", 0);
+			int userID = Intent.GetIntExtra ("UserID", 0);
+			var locSvc = new ROMPLocation ();
+			FacilityCoordinates[] myFacilities = locSvc.GetLocations (sessionKey, groupID);
+			foreach (FacilityCoordinates fc in myFacilities) {
+				ROMPGeofence rg = new ROMPGeofence (fc.LocationName, fc.Latitude, fc.Longitude, 1000.0f, Geofence.NeverExpire, Geofence.GeofenceTransitionEnter);
+			}
 		}
 
 

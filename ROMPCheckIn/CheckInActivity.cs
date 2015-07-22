@@ -27,16 +27,22 @@ namespace ROMPCheckIn
 		LocationManager _locationManager;
 		String _locationProvider;
 		FacilityCoordinates[] myFacilities;
+		int groupID;
+		string sessionKey;
+		int userID;
 
 		protected override void OnCreate (Bundle bundle)
 		{
 			RequestWindowFeature(WindowFeatures.NoTitle);
 			base.OnCreate (bundle);
 			SetContentView (Resource.Layout.CheckIn);
-			string sessionKey = Intent.GetStringExtra ("SessionKey");
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = false;
+			sessionKey = Intent.GetStringExtra ("SessionKey");
+			groupID = Intent.GetIntExtra ("GroupID", 0);
+			userID = Intent.GetIntExtra ("UserID", 0);
 			var locSvc = new ROMPLocation ();
 			//myFacilities[] = new FacilityCoordinates();
-			myFacilities = locSvc.GetLocations (sessionKey);
+			myFacilities = locSvc.GetLocations (sessionKey, groupID);
 			FindViewById<TextView>(Resource.Id.btnCheckIn).Click += btnCheckIn_OnClick;
 
 			InitializeLocationManager();
@@ -59,6 +65,7 @@ namespace ROMPCheckIn
 			{
 				_locationProvider = String.Empty;
 			}
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = true;
 		}
 
 		public void OnLocationChanged(Location location) {
@@ -67,33 +74,54 @@ namespace ROMPCheckIn
 
 		async void btnCheckIn_OnClick(object sender, EventArgs eventArgs)
 		{
-			if (_currentLocation == null) {
-				var myHandler = new Handler ();
-				myHandler.Post (() => {
-					Toast.MakeText (this, "Can't determine the current location.", ToastLength.Long).Show ();
-				});
-				return;
-			} else {
-				string sessionKey = Intent.GetStringExtra ("SessionKey");
-				string absResult = "You Are Not Within A Specified Zone.";
-				foreach (FacilityCoordinates fc in myFacilities) {
-					double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * fc.Latitude / 180) + 
-						Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * fc.Latitude / 180) * Math.Cos((_currentLocation.Longitude - fc.Longitude) * Math.PI / 180)  * 180 / Math.PI );
-					if (distance <= 1.1) {
+			try 
+			{
+				if (_currentLocation == null) {
+					var myHandler = new Handler ();
+					myHandler.Post (() => {
+						Toast.MakeText (this, "Can't determine the current location.", ToastLength.Long).Show ();
+					});
+					return;
+				} else {
+					if (groupID <= 2) {
+						string absResult = "You Are Not Within A Specified Zone.";
+						foreach (FacilityCoordinates fc in myFacilities) {
+							double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * fc.Latitude / 180) + 
+								Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * fc.Latitude / 180) * Math.Cos((_currentLocation.Longitude - fc.Longitude) * Math.PI / 180)  * 180 / Math.PI );
+							if (distance <= 1.1) {
+								var locSvc = new ROMPLocation ();
+								string result = locSvc.CheckIn(sessionKey, fc.LocationID);
+								if (result == "Success"){
+									absResult = "Check In Successful";
+								} else {
+									absResult = "An Unexpected Error Occurred. Try Again";
+								}
+							}
+						}
+						var myHandler = new Handler ();
+						myHandler.Post (() => {
+							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+						});
+					} else if (groupID > 2) {
+						string absResult;
 						var locSvc = new ROMPLocation ();
-						string result = locSvc.CheckIn(sessionKey, fc.LocationID, 0);
+						string result = locSvc.CheckInWithLocation(sessionKey, -1, _currentLocation.Latitude, _currentLocation.Longitude);
 						if (result == "Success"){
 							absResult = "Check In Successful";
 						} else {
 							absResult = "An Unexpected Error Occurred. Try Again";
 						}
+						var myHandler = new Handler ();
+						myHandler.Post (() => {
+							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+						});
 					}
 				}
-				var myHandler = new Handler ();
-				myHandler.Post (() => {
-					Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+			} catch (Exception e) {
+				var myHandler = new Handler();
+				myHandler.Post(() => {
+					Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
 				});
-				//locSvc.CheckIn(sessionKey,
 			}
 		}
 
@@ -103,10 +131,24 @@ namespace ROMPCheckIn
 
 		public void OnStatusChanged(string provider, Availability status, Bundle extras) {}
 
+		public override void OnBackPressed() {}
+
+		protected override void OnStop()
+		{
+			base.OnStop ();
+		}
+
+		protected override void OnDestroy()
+		{
+			base.OnDestroy ();
+		}
+
 		protected override void OnResume()
 		{
 			base.OnResume();
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = false;
 			_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this);
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = true;
 		}
 
 		protected override void OnPause()

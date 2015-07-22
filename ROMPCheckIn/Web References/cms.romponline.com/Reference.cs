@@ -26,7 +26,7 @@ namespace ROMPCheckIn.cms.romponline.com {
         
         /// <remarks/>
         public ROMPLocation() {
-            this.Url = "http://cms.romponline.com/romplocservice/ROMPLocation.asmx";
+			this.Url = "http://54.83.199.58:80/romplocservice/ROMPLocation.asmx";
         }
         
         public ROMPLocation(string url) {
@@ -77,16 +77,18 @@ namespace ROMPCheckIn.cms.romponline.com {
         
         /// <remarks/>
         [System.Web.Services.Protocols.SoapDocumentMethodAttribute("http://tempuri.org/GetLocations", RequestNamespace="http://tempuri.org/", ResponseNamespace="http://tempuri.org/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        public FacilityCoordinates[] GetLocations(string sessionKey) {
+        public FacilityCoordinates[] GetLocations(string sessionKey, int grpID) {
             object[] results = this.Invoke("GetLocations", new object[] {
-                        sessionKey});
+                        sessionKey,
+                        grpID});
             return ((FacilityCoordinates[])(results[0]));
         }
         
         /// <remarks/>
-        public System.IAsyncResult BeginGetLocations(string sessionKey, System.AsyncCallback callback, object asyncState) {
+        public System.IAsyncResult BeginGetLocations(string sessionKey, int grpID, System.AsyncCallback callback, object asyncState) {
             return this.BeginInvoke("GetLocations", new object[] {
-                        sessionKey}, callback, asyncState);
+                        sessionKey,
+                        grpID}, callback, asyncState);
         }
         
         /// <remarks/>
@@ -96,21 +98,45 @@ namespace ROMPCheckIn.cms.romponline.com {
         }
         
         /// <remarks/>
-        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("http://tempuri.org/CheckIn", RequestNamespace="http://tempuri.org/", ResponseNamespace="http://tempuri.org/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
-        public string CheckIn(string sessionKey, int locID, int foreign_id) {
-            object[] results = this.Invoke("CheckIn", new object[] {
+        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("http://tempuri.org/CheckInWithLocation", RequestNamespace="http://tempuri.org/", ResponseNamespace="http://tempuri.org/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
+        public string CheckInWithLocation(string sessionKey, int locID, double locLat, double locLong) {
+            object[] results = this.Invoke("CheckInWithLocation", new object[] {
                         sessionKey,
                         locID,
-                        foreign_id});
+                        locLat,
+                        locLong});
             return ((string)(results[0]));
         }
         
         /// <remarks/>
-        public System.IAsyncResult BeginCheckIn(string sessionKey, int locID, int foreign_id, System.AsyncCallback callback, object asyncState) {
-            return this.BeginInvoke("CheckIn", new object[] {
+        public System.IAsyncResult BeginCheckInWithLocation(string sessionKey, int locID, double locLat, double locLong, System.AsyncCallback callback, object asyncState) {
+            return this.BeginInvoke("CheckInWithLocation", new object[] {
                         sessionKey,
                         locID,
-                        foreign_id}, callback, asyncState);
+                        locLat,
+                        locLong}, callback, asyncState);
+        }
+        
+        /// <remarks/>
+        public string EndCheckInWithLocation(System.IAsyncResult asyncResult) {
+            object[] results = this.EndInvoke(asyncResult);
+            return ((string)(results[0]));
+        }
+        
+        /// <remarks/>
+        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("http://tempuri.org/CheckIn", RequestNamespace="http://tempuri.org/", ResponseNamespace="http://tempuri.org/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
+        public string CheckIn(string sessionKey, int locID) {
+            object[] results = this.Invoke("CheckIn", new object[] {
+                        sessionKey,
+                        locID});
+            return ((string)(results[0]));
+        }
+        
+        /// <remarks/>
+        public System.IAsyncResult BeginCheckIn(string sessionKey, int locID, System.AsyncCallback callback, object asyncState) {
+            return this.BeginInvoke("CheckIn", new object[] {
+                        sessionKey,
+                        locID}, callback, asyncState);
         }
         
         /// <remarks/>
@@ -133,6 +159,12 @@ namespace ROMPCheckIn.cms.romponline.com {
         
         /// <remarks/>
         public string SessionKey;
+        
+        /// <remarks/>
+        public int GroupID;
+        
+        /// <remarks/>
+        public int UserID;
     }
     
     /// <remarks/>
