@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ROMPCheckIn.cms.romponline.com;
 
 using Android.App;
 using Android.Content;
@@ -10,100 +11,164 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
-using Android.Gms.Location;
 using Android.Util;
 using Android.Gms.Common.Apis;
 using Android.Gms.Common;
+using Android.Locations;
+
 
 namespace ROMPCheckIn
 {
 	[Activity (Label = "CheckInActivity")]			
-	public class CheckInActivity : Activity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener
+	public class CheckInActivity : Activity, ILocationListener
 	{
-		List<IGeofence> geofenceList;
 
-		// Persistent storage for geofences
-		ROMPGeofenceStore mGeofenceStorage;
-
-		IGoogleApiClient apiClient;
-		// Stores the PendingIntent used to request geofence monitoring
-		PendingIntent geofenceRequestIntent;
-
-		// Defines the allowable request types (in this example, we only add geofences)
-		enum RequestType { Add }
-		RequestType mRequestType;
-		// Flag that indicates if a request is underway
-		bool mInProgress;
-
-		bool IsGooglePlayServicesAvailable
-		{
-			get {
-				int resultCode = GoogleApiAvailability.Instance.IsGooglePlayServicesAvailable (this);
-				if (resultCode == ConnectionResult.Success) {
-					if (Log.IsLoggable ("Tag", LogPriority.Debug)) {
-						Log.Debug ("Tag", "Google Play services is available");
-					}
-					return true;
-				} else {
-					Log.Error ("Tag", "Google Play services is unavailable");
-					return false;
-				}
-			}
-		}
-
-		PendingIntent GeofenceTransitionPendingIntent {
-			get {
-				var intent = new Intent (this, typeof(GeofenceTransitionsIntentService));
-				return PendingIntent.GetService (this, 0, intent, PendingIntentFlags.UpdateCurrent);
-			}
-		}
+		Location _currentLocation;
+		LocationManager _locationManager;
+		String _locationProvider;
+		FacilityCoordinates[] myFacilities;
+		int groupID;
+		string sessionKey;
+		int userID;
 
 		protected override void OnCreate (Bundle bundle)
 		{
+			RequestWindowFeature(WindowFeatures.NoTitle);
 			base.OnCreate (bundle);
+			SetContentView (Resource.Layout.CheckIn);
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = false;
+			sessionKey = Intent.GetStringExtra ("SessionKey");
+			groupID = Intent.GetIntExtra ("GroupID", 0);
+			userID = Intent.GetIntExtra ("UserID", 0);
+			var locSvc = new ROMPLocation ();
+			//myFacilities[] = new FacilityCoordinates();
+			myFacilities = locSvc.GetLocations (sessionKey, groupID);
+			FindViewById<TextView>(Resource.Id.btnCheckIn).Click += btnCheckIn_OnClick;
 
-			mGeofenceStorage = new ROMPGeofenceStore (this);
-			geofenceList = new List<IGeofence> ();
-			mInProgress = false;
-
-
-			// Create your application here
+			InitializeLocationManager();
 		}
 
-
-
-		public void OnConnectionFailed(Android.Gms.Common.ConnectionResult result)
+		void InitializeLocationManager()
 		{
-			mInProgress = false;
+			_locationManager = (LocationManager)GetSystemService(LocationService);
+			Criteria criteriaForLocationService = new Criteria
+			{
+				Accuracy = Accuracy.Fine
+			};
+			IList<string> acceptableLocationProviders = _locationManager.GetProviders(criteriaForLocationService, true);
 
-			if (result.HasResolution) {
-				try {
-					result.StartResolutionForResult (this, 1);
-				} catch (Exception ex) {
-					Log.Error ("ERROR", "Exception while resolving connection error.", ex);
+			if (acceptableLocationProviders.Any())
+			{
+				_locationProvider = acceptableLocationProviders.First();
+			}
+			else
+			{
+				_locationProvider = String.Empty;
+			}
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = true;
+		}
+
+		public void OnLocationChanged(Location location) {
+			_currentLocation = location;
+		}
+
+		async void btnCheckIn_OnClick(object sender, EventArgs eventArgs)
+		{
+			try 
+			{
+				if (_currentLocation == null) {
+					var myHandler = new Handler ();
+					myHandler.Post (() => {
+						Toast.MakeText (this, "Determining Location, Wait One Moment and Try Again.", ToastLength.Long).Show ();
+					});
+					return;
+				} else {
+					if (groupID <= 2) {
+						string absResult = "You Are Not Within A Specified Zone.";
+						foreach (FacilityCoordinates fc in myFacilities) {
+							double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * fc.Latitude / 180) + 
+								Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * fc.Latitude / 180) * Math.Cos((_currentLocation.Longitude - fc.Longitude) * Math.PI / 180)  * 180 / Math.PI );
+							if (distance <= 1.1) {
+								var locSvc = new ROMPLocation ();
+								string result = locSvc.CheckIn(sessionKey, fc.LocationID);
+								if (result == "Success"){
+									absResult = "Check In Successful";
+								} else {
+									absResult = "An Unexpected Error Occurred. Try Again";
+								}
+							}
+						}
+						var myHandler = new Handler ();
+						myHandler.Post (() => {
+							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+						});
+					} else if (groupID > 2 && groupID <= 7) {
+						string absResult;
+						var locSvc = new ROMPLocation ();
+						string result = locSvc.CheckInWithLocation(sessionKey, -1, _currentLocation.Latitude, _currentLocation.Longitude);
+						if (result == "Success"){
+							absResult = "Check In Successful";
+						} else {
+							absResult = "An Unexpected Error Occurred. Try Again";
+						}
+						var myHandler = new Handler ();
+						myHandler.Post (() => {
+							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+						});
+					} else if (groupID == 8) {
+						double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * 48.46003187 / 180) + 
+							Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * 48.46003187 / 180) * Math.Cos((_currentLocation.Longitude - -89.18908003) * Math.PI / 180)  * 180 / Math.PI );
+						var myHandler = new Handler ();
+						string absResult = distance.ToString();
+						myHandler.Post (() => {
+							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+						});
+					}
 				}
-			} else {
-				int errorCode = result.ErrorCode;
-				Log.Error ("ERROR", "Connection to Google Play Services Failed with Code " + errorCode);
+			} catch (Exception e) {
+				var myHandler = new Handler();
+				myHandler.Post(() => {
+					Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
+				});
 			}
 		}
 
-		public void OnConnectionSuspended(int i)
-		{
+		public void OnProviderDisabled(string provider) {}
+
+		public void OnProviderEnabled(string provider) {}
+
+		public void OnStatusChanged(string provider, Availability status, Bundle extras) {}
+
+		public override void OnBackPressed() {
+			var builder = new AlertDialog.Builder(this);
+			builder.SetMessage("Exit App?");
+			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
+			builder.SetNegativeButton("Cancel", (s, e) => { });
+			builder.Create().Show();
 		}
 
-		public void OnConnected(Bundle connectionHint)
+		protected override void OnStop()
 		{
-			if (mRequestType == RequestType.Add) {
-				geofenceRequestIntent = GeofenceTransitionPendingIntent;
-				LocationServices.GeofencingApi.AddGeofences (apiClient, geofenceList, geofenceRequestIntent);
-			}
+			base.OnStop ();
 		}
 
-		public void OnDisconnected()
+		protected override void OnDestroy()
 		{
-			mInProgress = false;
-			apiClient = null;
+			base.OnDestroy ();
+		}
+
+		protected override void OnResume()
+		{
+			base.OnResume();
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = false;
+			_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this);
+			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = true;
+		}
+
+		protected override void OnPause()
+		{
+			base.OnPause();
+			_locationManager.RemoveUpdates(this);
 		}
 	}
 }

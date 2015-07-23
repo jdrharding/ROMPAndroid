@@ -19,11 +19,12 @@ using Android.Gms.Common;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMPCheckIn", MainLauncher = true, Icon = "@drawable/icon")]
+	[Activity (Label = "ROMP Check-In", MainLauncher = true, Icon = "@drawable/icon")]
 	public class MainActivity : Activity
 	{
 		protected override void OnCreate (Bundle bundle)
 		{
+			RequestWindowFeature(WindowFeatures.NoTitle);
 			base.OnCreate (bundle);
 
 			// Set our view from the "main" layout resource
@@ -39,21 +40,48 @@ namespace ROMPCheckIn
 				Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
 				Match match = regex.Match(email);
 				if (string.IsNullOrEmpty(txtPassword.Text) || string.IsNullOrEmpty(txtUsername.Text)) {
-					Android.Widget.Toast.MakeText(this, "Please Provide a Username and Password.", Android.Widget.ToastLength.Short).Show();
+					var myHandler = new Handler();
+					myHandler.Post(() => {
+						Android.Widget.Toast.MakeText(this, "Please Provide a Username and Password.", Android.Widget.ToastLength.Long).Show();
+					});
 				} else if (!match.Success){
-					Android.Widget.Toast.MakeText(this, "Not a valid Email Address.", Android.Widget.ToastLength.Short).Show();
+					var myHandler = new Handler();
+					myHandler.Post(() => {
+						Android.Widget.Toast.MakeText(this, "Not a valid Email Address.", Android.Widget.ToastLength.Long).Show();
+					});
 				} else {
-
-					var locSvc = new ROMPLocation();
-					var loginResp = new LoginResponse();
-					loginResp = locSvc.LearnerLogin(txtUsername.Text, txtPassword.Text);
-					if (loginResp.Success) {
-						var nextActivity = new Intent(this, typeof(ChooseModeActivity));
-						nextActivity.PutExtra("SessionKey", loginResp.SessionKey);
-						StartActivity(nextActivity);
-						Finish();
-					} else {
-						Android.Widget.Toast.MakeText(this, "Login Failed. Please Try Again.", Android.Widget.ToastLength.Short).Show();
+					try {						
+						var locSvc = new ROMPLocation();
+						var loginResp = new LoginResponse();
+						loginResp = locSvc.LearnerLogin(txtUsername.Text, txtPassword.Text);
+						if (loginResp.Success) {
+							if (loginResp.GroupID <= 2) {
+								var nextActivity = new Intent(this, typeof(ChooseModeActivity));
+								nextActivity.PutExtra("SessionKey", loginResp.SessionKey);
+								nextActivity.PutExtra("GroupID", loginResp.GroupID);
+								nextActivity.PutExtra("UserID", loginResp.UserID);
+								StartActivity(nextActivity);
+								Finish();
+							} else {
+								var nextActivity = new Intent(this, typeof(CheckInActivity));
+								nextActivity.PutExtra("SessionKey", loginResp.SessionKey);
+								nextActivity.PutExtra("GroupID", loginResp.GroupID);
+								nextActivity.PutExtra("UserID", loginResp.UserID);
+								StartActivity(nextActivity);
+								Finish();
+							}
+						} else {
+							var myHandler = new Handler();
+							myHandler.Post(() => {
+								Android.Widget.Toast.MakeText(this, "Login Failed. Please Try Again.", Android.Widget.ToastLength.Long).Show();
+							});
+						}
+					} catch (Exception e) {
+						var myHandler = new Handler();
+						myHandler.Post(() => {
+							Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
+						});
+						System.Diagnostics.Debug.Write(e.Message);
 					}
 				}
 			};

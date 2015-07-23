@@ -5,6 +5,7 @@ using Android.Gms.Wearable;
 using Android.Gms.Location;
 using Android.Util;
 using Java.Util.Concurrent;
+using System.Collections.Generic;
 
 namespace ROMPCheckIn
 {
@@ -35,19 +36,21 @@ namespace ROMPCheckIn
 		/// when AddGeofences() is called</param>
 		protected override void OnHandleIntent (Android.Content.Intent intent)
 		{
+			
 			// First check for errors
 			var geofencingEvent = GeofencingEvent.FromIntent (intent);
 			if (geofencingEvent.HasError) {
 				int errorCode = geofencingEvent.ErrorCode;
-				Log.Error ("Constants.TAG", "Location Services error: " + errorCode);
+				//Log.Error ("Constants.TAG", "Location Services error: " + errorCode);
 			} else {
 				// Get the type of Geofence transition (i.e. enter or exit in this sample).
 				int transitionType = geofencingEvent.GeofenceTransition;
 				// Create a DataItem when a user enters one of the geofences. The wearable app will receie this and create a
 				// notification to prompt him/her to check in
-				if (transitionType == Geofence.GeofenceTransitionEnter) {
+				if (transitionType == Geofence.GeofenceTransitionEnter | transitionType == Geofence.GeofenceTransitionExit) {
 					// Connect to the Google Api service in preparation for sending a DataItem
 					mGoogleApiClient.BlockingConnect (500, TimeUnit.Milliseconds);
+					List<Geofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
 					// Get the geofence ID triggered. Note that only one geofence can be triggered at a time in this example, but in some cases
 					// you might want to consider the full list of geofences triggered
 					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;

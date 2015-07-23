@@ -19,56 +19,60 @@ namespace ROMPCheckIn
 	{
 		protected override void OnCreate (Bundle bundle)
 		{
+			RequestWindowFeature(WindowFeatures.NoTitle);
 			base.OnCreate (bundle);
+			SetContentView (Resource.Layout.ChooseMode);
+			try {
+				string sessionKey = Intent.GetStringExtra ("SessionKey");
+				int groupID = Intent.GetIntExtra ("GroupID", 0);
+				int userID = Intent.GetIntExtra ("UserID", 0);
+				var locSvc = new ROMPLocation ();
+				Button button = FindViewById<Button> (Resource.Id.btnChoose);
+				CheckBox cbpassive = FindViewById<CheckBox> (Resource.Id.cbPassive);
+				CheckBox cbactive = FindViewById<CheckBox> (Resource.Id.cbActive);
 
-			string sessionKey = Intent.GetStringExtra ("SessionKey");
-			var locSvc = new ROMPLocation ();
-			Button button = FindViewById<Button> (Resource.Id.btnChoose);
-			CheckBox cbpassive = FindViewById<CheckBox> (Resource.Id.cbPassive);
-			CheckBox cbactive = FindViewById<CheckBox> (Resource.Id.cbActive);
+				cbpassive.Click += (o, e) => {
+					if (cbactive.Checked) {
+						cbactive.Checked = false;
+					} 
+				};
 
-			cbpassive.Click += delegate {
-				if (cbpassive.Selected) {
-					cbpassive.Selected = false;
-				} else {
-					cbpassive.Selected = true;
-				}
+				cbactive.Click += (o, e) => {
+					if (cbpassive.Checked) {
+						cbpassive.Checked = false;
+					} 
+				};
 
-				if (cbactive.Selected) {
-					cbactive.Selected = false;
-				} 
-			};
-
-			cbactive.Click += delegate {
-				if (cbactive.Selected) {
-					cbactive.Selected = false;
-				} else {
-					cbactive.Selected = true;
-				}
-
-				if (cbpassive.Selected) {
-					cbpassive.Selected = false;
-				} 
-			};
-
-			button.Click += delegate {
-				if (cbactive.Selected) {
-					var nextActivity = new Intent(this, typeof(CheckInActivity));
-					nextActivity.PutExtra("SessionKey", sessionKey);
-					StartActivity(nextActivity);
-					Finish();
-				} else if (cbpassive.Selected) {
-					var nextActivity = new Intent(this, typeof(CheckInPassiveActivity));
-					nextActivity.PutExtra("SessionKey", sessionKey);
-					StartActivity(nextActivity);
-					Finish();
-				} else {
-					string errmsg = "Please choose a check in method before proceeding.";
-					Toast.MakeText(this, errmsg, ToastLength.Short);
-				}
-			};
-
-			// Create your application here
+				button.Click += delegate {
+					if (cbactive.Checked) {
+						var nextActivity = new Intent(this, typeof(CheckInActivity));
+						nextActivity.PutExtra("SessionKey", sessionKey);
+						nextActivity.PutExtra("GroupID", groupID);
+						nextActivity.PutExtra("UserID", userID);
+						StartActivity(nextActivity);
+						Finish();
+					} else if (cbpassive.Checked) {
+						var nextActivity = new Intent(this, typeof(CheckInPassiveActivity));
+						nextActivity.PutExtra("SessionKey", sessionKey);
+						nextActivity.PutExtra("GroupID", groupID);
+						nextActivity.PutExtra("UserID", userID);
+						StartActivity(nextActivity);
+						Finish();
+					} else {
+						string errmsg = "Please choose a check in method before proceeding.";
+						var myHandler = new Handler();
+						myHandler.Post(() => {
+							Toast.MakeText(this, errmsg, ToastLength.Short).Show();
+						});
+					}
+				};
+			} catch (Exception e) {
+				var myHandler = new Handler();
+				myHandler.Post(() => {
+					Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
+				});
+				System.Diagnostics.Debug.Write (e.Message);
+			}
 		}
 	}
 }
