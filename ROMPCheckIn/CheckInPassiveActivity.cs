@@ -119,6 +119,34 @@ namespace ROMPCheckIn
 			mInProgress = false;
 			apiClient = null;
 		}
+
+		public override void OnBackPressed() {
+			var builder = new AlertDialog.Builder(this);
+			builder.SetMessage("Exit App?");
+			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
+			builder.SetNegativeButton("Cancel", (s, e) => { });
+			builder.Create().Show();
+		}
+
+		protected override void OnStop()
+		{
+			base.OnStop ();
+		}
+
+		protected override void OnDestroy()
+		{
+			base.OnDestroy ();
+		}
+
+		protected override void OnResume()
+		{
+			base.OnResume();
+		}
+
+		protected override void OnPause()
+		{
+			base.OnPause();
+		}
 	}
 }
 

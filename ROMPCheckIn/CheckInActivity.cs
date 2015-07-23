@@ -79,7 +79,7 @@ namespace ROMPCheckIn
 				if (_currentLocation == null) {
 					var myHandler = new Handler ();
 					myHandler.Post (() => {
-						Toast.MakeText (this, "Can't determine the current location.", ToastLength.Long).Show ();
+						Toast.MakeText (this, "Determining Location, Wait One Moment and Try Again.", ToastLength.Long).Show ();
 					});
 					return;
 				} else {
@@ -102,7 +102,7 @@ namespace ROMPCheckIn
 						myHandler.Post (() => {
 							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
 						});
-					} else if (groupID > 2) {
+					} else if (groupID > 2 && groupID <= 7) {
 						string absResult;
 						var locSvc = new ROMPLocation ();
 						string result = locSvc.CheckInWithLocation(sessionKey, -1, _currentLocation.Latitude, _currentLocation.Longitude);
@@ -112,6 +112,14 @@ namespace ROMPCheckIn
 							absResult = "An Unexpected Error Occurred. Try Again";
 						}
 						var myHandler = new Handler ();
+						myHandler.Post (() => {
+							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+						});
+					} else if (groupID == 8) {
+						double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * 48.46003187 / 180) + 
+							Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * 48.46003187 / 180) * Math.Cos((_currentLocation.Longitude - -89.18908003) * Math.PI / 180)  * 180 / Math.PI );
+						var myHandler = new Handler ();
+						string absResult = distance.ToString();
 						myHandler.Post (() => {
 							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
 						});
@@ -131,7 +139,13 @@ namespace ROMPCheckIn
 
 		public void OnStatusChanged(string provider, Availability status, Bundle extras) {}
 
-		public override void OnBackPressed() {}
+		public override void OnBackPressed() {
+			var builder = new AlertDialog.Builder(this);
+			builder.SetMessage("Exit App?");
+			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
+			builder.SetNegativeButton("Cancel", (s, e) => { });
+			builder.Create().Show();
+		}
 
 		protected override void OnStop()
 		{

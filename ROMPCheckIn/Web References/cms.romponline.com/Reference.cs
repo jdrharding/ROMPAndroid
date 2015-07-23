@@ -144,6 +144,28 @@ namespace ROMPCheckIn.cms.romponline.com {
             object[] results = this.EndInvoke(asyncResult);
             return ((string)(results[0]));
         }
+        
+        /// <remarks/>
+        [System.Web.Services.Protocols.SoapDocumentMethodAttribute("http://tempuri.org/CheckOut", RequestNamespace="http://tempuri.org/", ResponseNamespace="http://tempuri.org/", Use=System.Web.Services.Description.SoapBindingUse.Literal, ParameterStyle=System.Web.Services.Protocols.SoapParameterStyle.Wrapped)]
+        public string CheckOut(string sessionKey, int locID) {
+            object[] results = this.Invoke("CheckOut", new object[] {
+                        sessionKey,
+                        locID});
+            return ((string)(results[0]));
+        }
+        
+        /// <remarks/>
+        public System.IAsyncResult BeginCheckOut(string sessionKey, int locID, System.AsyncCallback callback, object asyncState) {
+            return this.BeginInvoke("CheckOut", new object[] {
+                        sessionKey,
+                        locID}, callback, asyncState);
+        }
+        
+        /// <remarks/>
+        public string EndCheckOut(System.IAsyncResult asyncResult) {
+            object[] results = this.EndInvoke(asyncResult);
+            return ((string)(results[0]));
+        }
     }
     
     /// <remarks/>
