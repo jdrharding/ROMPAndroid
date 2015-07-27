@@ -16,7 +16,7 @@ namespace ROMPCheckIn
 {
 	[Activity (Label = "ChooseModeActivity")]			
 	public class ChooseModeActivity : Activity
-	{
+	{		
 		protected override void OnCreate (Bundle bundle)
 		{
 			RequestWindowFeature(WindowFeatures.NoTitle);
@@ -73,6 +73,17 @@ namespace ROMPCheckIn
 				});
 				System.Diagnostics.Debug.Write (e.Message);
 			}
+		}
+
+
+		public override void OnBackPressed() {
+			var builder = new Android.App.AlertDialog.Builder(this);
+			builder.SetTitle ("Exit.");
+			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
+			builder.SetMessage("Exit App?");
+			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
+			builder.SetNegativeButton("Cancel", (s, e) => { });
+			builder.Create().Show();
 		}
 	}
 }

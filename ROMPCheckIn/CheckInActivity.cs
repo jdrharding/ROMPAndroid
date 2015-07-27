@@ -140,7 +140,9 @@ namespace ROMPCheckIn
 		public void OnStatusChanged(string provider, Availability status, Bundle extras) {}
 
 		public override void OnBackPressed() {
-			var builder = new AlertDialog.Builder(this);
+			var builder = new Android.App.AlertDialog.Builder(this);
+			builder.SetTitle ("Exit.");
+			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
 			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
 			builder.SetNegativeButton("Cancel", (s, e) => { });
