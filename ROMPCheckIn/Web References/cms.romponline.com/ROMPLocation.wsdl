@@ -114,6 +114,20 @@
           </s:sequence>
         </s:complexType>
       </s:element>
+      <s:element name="CheckOutWithoutLocation">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="sessionKey" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CheckOutWithoutLocationResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="CheckOutWithoutLocationResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
     </s:schema>
   </wsdl:types>
   <wsdl:message name="LearnerLoginSoapIn">
@@ -152,6 +166,12 @@
   <wsdl:message name="CheckOutSoapOut">
     <wsdl:part name="parameters" element="tns:CheckOutResponse" />
   </wsdl:message>
+  <wsdl:message name="CheckOutWithoutLocationSoapIn">
+    <wsdl:part name="parameters" element="tns:CheckOutWithoutLocation" />
+  </wsdl:message>
+  <wsdl:message name="CheckOutWithoutLocationSoapOut">
+    <wsdl:part name="parameters" element="tns:CheckOutWithoutLocationResponse" />
+  </wsdl:message>
   <wsdl:portType name="ROMPLocationSoap">
     <wsdl:operation name="LearnerLogin">
       <wsdl:input message="tns:LearnerLoginSoapIn" />
@@ -176,6 +196,10 @@
     <wsdl:operation name="CheckOut">
       <wsdl:input message="tns:CheckOutSoapIn" />
       <wsdl:output message="tns:CheckOutSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckOutWithoutLocation">
+      <wsdl:input message="tns:CheckOutWithoutLocationSoapIn" />
+      <wsdl:output message="tns:CheckOutWithoutLocationSoapOut" />
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="ROMPLocationSoap" type="tns:ROMPLocationSoap">
@@ -234,6 +258,15 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="CheckOutWithoutLocation">
+      <soap:operation soapAction="http://tempuri.org/CheckOutWithoutLocation" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
   </wsdl:binding>
   <wsdl:binding name="ROMPLocationSoap12" type="tns:ROMPLocationSoap">
     <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
@@ -284,6 +317,15 @@
     </wsdl:operation>
     <wsdl:operation name="CheckOut">
       <soap12:operation soapAction="http://tempuri.org/CheckOut" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckOutWithoutLocation">
+      <soap12:operation soapAction="http://tempuri.org/CheckOutWithoutLocation" style="document" />
       <wsdl:input>
         <soap12:body use="literal" />
       </wsdl:input>

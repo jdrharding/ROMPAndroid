@@ -85,17 +85,40 @@ namespace ROMPCheckIn
 				} else {
 					if (groupID <= 2) {
 						string absResult = "You Are Not Within A Specified Zone.";
-						foreach (FacilityCoordinates fc in myFacilities) {
-							double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * fc.Latitude / 180) + 
-								Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * fc.Latitude / 180) * Math.Cos((_currentLocation.Longitude - fc.Longitude) * Math.PI / 180)  * 180 / Math.PI );
-							if (distance <= 1.1) {
-								var locSvc = new ROMPLocation ();
-								string result = locSvc.CheckIn(sessionKey, fc.LocationID);
-								if (result == "Success"){
-									absResult = "Check In Successful";
-								} else {
-									absResult = "An Unexpected Error Occurred. Try Again";
+						Button button = FindViewById<Button>(Resource.Id.btnCheckIn);
+						if (button.Text == "Check In") {
+							foreach (FacilityCoordinates fc in myFacilities) {
+								var fenceLat = fc.Latitude;
+								var fenceLon = fc.Longitude;
+								var R = 6371; // Radius of the earth in km
+								var dLat = deg2rad(_currentLocation.Latitude - fenceLat);  // deg2rad below
+								var dLon = deg2rad(_currentLocation.Longitude - fenceLon); 
+								var a = 
+									Math.Sin(dLat/2) * Math.Sin(dLat/2) +
+									Math.Cos(deg2rad(fenceLat)) * Math.Cos(deg2rad(_currentLocation.Latitude)) * 
+									Math.Sin(dLon/2) * Math.Sin(dLon/2)
+									; 
+								var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1-a)); 
+								var d = R * c;
+								if (d <= 1.0) {
+									var locSvc = new ROMPLocation ();
+									string result = locSvc.CheckIn(sessionKey, fc.LocationID);
+									if (result == "Success"){
+										absResult = "Check In Successful";
+										button.Text = "Check Out";
+									} else {
+										absResult = "An Unexpected Error Occurred. Try Again";
+									}
 								}
+							}
+						} else if (button.Text == "Check Out") {
+							var locSvc = new ROMPLocation ();
+							string result = locSvc.CheckOutWithoutLocation(sessionKey);
+							if (result == "Success"){
+								absResult = "Check In Successful";
+								button.Text = "Check In";
+							} else {
+								absResult = "An Unexpected Error Occurred. Try Again";
 							}
 						}
 						var myHandler = new Handler ();
@@ -104,22 +127,50 @@ namespace ROMPCheckIn
 						});
 					} else if (groupID > 2 && groupID <= 7) {
 						string absResult;
-						var locSvc = new ROMPLocation ();
-						string result = locSvc.CheckInWithLocation(sessionKey, -1, _currentLocation.Latitude, _currentLocation.Longitude);
-						if (result == "Success"){
-							absResult = "Check In Successful";
-						} else {
-							absResult = "An Unexpected Error Occurred. Try Again";
+						Button button = FindViewById<Button>(Resource.Id.btnCheckIn);
+						if (button.Text == "Check In") {
+							var locSvc = new ROMPLocation ();
+							string result = locSvc.CheckInWithLocation(sessionKey, -1, _currentLocation.Latitude, _currentLocation.Longitude);
+							if (result == "Success"){
+								absResult = "Check In Successful";
+								button.Text = "Check Out";
+							} else {
+								absResult = "An Unexpected Error Occurred. Try Again";
+							}
+							var myHandler = new Handler ();
+							myHandler.Post (() => {
+								Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+							});
+						} else if (button.Text == "Check Out") {
+							var locSvc = new ROMPLocation ();
+							string result = locSvc.CheckOutWithoutLocation(sessionKey);
+							if (result == "Success"){
+								absResult = "Check In Successful";
+								button.Text = "Check In";
+							} else {
+								absResult = "An Unexpected Error Occurred. Try Again";
+							}
+							var myHandler = new Handler ();
+							myHandler.Post (() => {
+								Toast.MakeText (this, absResult, ToastLength.Long).Show ();
+							});
 						}
-						var myHandler = new Handler ();
-						myHandler.Post (() => {
-							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
-						});
 					} else if (groupID == 8) {
-						double distance = 60* 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * 48.46003187 / 180) + 
-							Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * 48.46003187 / 180) * Math.Cos((_currentLocation.Longitude - -89.18908003) * Math.PI / 180)  * 180 / Math.PI );
+						var fenceLat = 48.46003187;
+						var fenceLon = -89.18908003;
+						var R = 6371; // Radius of the earth in km
+						var dLat = deg2rad(_currentLocation.Latitude - fenceLat);  // deg2rad below
+						var dLon = deg2rad(_currentLocation.Longitude - fenceLon); 
+						var a = 
+							Math.Sin(dLat/2) * Math.Sin(dLat/2) +
+							Math.Cos(deg2rad(fenceLat)) * Math.Cos(deg2rad(_currentLocation.Latitude)) * 
+							Math.Sin(dLon/2) * Math.Sin(dLon/2)
+							; 
+						var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1-a)); 
+						var d = R * c;
+						//double distance = 60 * 1.1515 * Math.Acos(Math.Sin(Math.PI * _currentLocation.Latitude / 180) * Math.Sin(Math.PI * 48.46003187 / 180) + Math.Cos(Math.PI * _currentLocation.Latitude / 180) * Math.Cos(Math.PI * 48.46003187 / 180) * Math.Cos((_currentLocation.Longitude - -89.18908003) * Math.PI / 180)  * 180 / Math.PI );
 						var myHandler = new Handler ();
-						string absResult = distance.ToString();
+						string absResult = d.ToString();
 						myHandler.Post (() => {
 							Toast.MakeText (this, absResult, ToastLength.Long).Show ();
 						});
@@ -131,6 +182,10 @@ namespace ROMPCheckIn
 					Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
 				});
 			}
+		}
+
+		private double deg2rad(double deg) {
+			return deg * (Math.PI / 180);
 		}
 
 		public void OnProviderDisabled(string provider) {}
