@@ -72,7 +72,7 @@ namespace ROMPCheckIn
 			_currentLocation = location;
 		}
 
-		async void btnCheckIn_OnClick(object sender, EventArgs eventArgs)
+		public void btnCheckIn_OnClick(object sender, EventArgs eventArgs)
 		{
 			try 
 			{
@@ -144,7 +144,7 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
+			builder.SetPositiveButton("OK", (s, e) => { OnStop(); });
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}

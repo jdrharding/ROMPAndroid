@@ -22,18 +22,12 @@ using Android.Support.V7.App;
 namespace ROMPCheckIn
 {
 	[Activity (Label = "CheckInPassiveActivity")]			
-	public class CheckInPassiveActivity : ActionBarActivity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, ResultCallback<Statuses>
+	public class CheckInPassiveActivity : ActionBarActivity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, IResultCallback
 	{
 		IGoogleApiClient apiClient;
 		List<IGeofence> geofenceList;
-		bool mGeofencesAdded;
 		PendingIntent geofenceRequestIntent;
 		ISharedPreferences mSharedPreferences;
-
-		enum RequestType { Add }
-		RequestType mRequestType;
-
-		bool mInProgress;
 
 		protected override void OnCreate (Bundle bundle)
 		{
@@ -42,7 +36,6 @@ namespace ROMPCheckIn
 			SetContentView (Resource.Layout.CheckIn);
 			geofenceList = new List<IGeofence> ();
 			geofenceRequestIntent = null;
-			mGeofencesAdded = false;
 			mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
 			string sessionKey = Intent.GetStringExtra ("SessionKey");
 			int groupID = Intent.GetIntExtra ("GroupID", 0);
@@ -59,7 +52,7 @@ namespace ROMPCheckIn
 		}
 
 		public void BuildGoogleApiClient() {
-			apiClient = new GoogleApiClientBuilder ()
+			apiClient = new GoogleApiClientBuilder (this)
 				.AddConnectionCallbacks (this)
 				.AddOnConnectionFailedListener (this)
 				.AddApi (LocationServices.API)
@@ -85,7 +78,7 @@ namespace ROMPCheckIn
 
 		public void OnConnectionFailed(Android.Gms.Common.ConnectionResult result)
 		{			
-			Log.Error ("ERROR", "Connection to Google Play Services Failed with Code " + errorCode);
+			Log.Error ("ERROR", "Connection to Google Play Services Failed with Code " + result.ErrorCode);
 		}
 
 		public void OnConnectionSuspended(int i)
@@ -104,7 +97,8 @@ namespace ROMPCheckIn
 			Log.Error ("ROMPCheckIn", "Invalid location permissions. ACCESS_FINE_LOCATION required", securityEx);
 		}
 
-		public void OnResult(Statuses status) {
+		public void OnResult(Java.Lang.Object statusRaw) {
+			var status = statusRaw.JavaCast<Statuses>();
 			if (status.IsSuccess) {
 				var myHandler = new Handler ();
 				myHandler.Post (() => {
@@ -160,7 +154,7 @@ namespace ROMPCheckIn
 			FacilityCoordinates[] myFacilities = locSvc.GetLocations (sessionKey, groupID);
 			foreach (FacilityCoordinates fc in myFacilities) {
 				geofenceList.Add(new GeofenceBuilder ()
-					.SetRequestId (fc.LocationID)
+					.SetRequestId (fc.LocationID.ToString())
 					.SetCircularRegion (fc.Latitude, fc.Longitude, 500)
 					.SetExpirationDuration (Geofence.NeverExpire)
 					.SetTransitionTypes (Geofence.GeofenceTransitionEnter | Geofence.GeofenceTransitionExit)
@@ -173,51 +167,8 @@ namespace ROMPCheckIn
 			}
 		}
 
-
-		public void StartGeofencing() {
-			if (!apiClient.IsConnected) {
-				var myHandler = new Handler();
-				myHandler.Post(() => {
-					Android.Widget.Toast.MakeText(this, "Not Connected to Google Play Services.", Android.Widget.ToastLength.Long).Show();
-				});
-			}
-
-			try 
-			{
-				LocationServices.GeofencingApi.AddGeofences(apiClient, getGeofencingRequest(), getGeofencePendingIntent()).SetResultCallback(this);
-
-			} catch (Exception e) {
-				var myHandler = new Handler();
-				myHandler.Post(() => {
-					Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
-				});
-			}
-		}
-
-		public void StopGeofencing() {
-			if (!apiClient.IsConnected) {
-				var myHandler = new Handler();
-				myHandler.Post(() => {
-					Android.Widget.Toast.MakeText(this, "Not Connected to Google Play Services.", Android.Widget.ToastLength.Long).Show();
-				});
-			}
-
-			try 
-			{
-				LocationServices.GeofencingApi.RemoveGeofences(apiClient, getGeofencingRequest(), getGeofencePendingIntent()).SetResultCallback(this);
-
-			} catch (Exception e) {
-				var myHandler = new Handler();
-				myHandler.Post(() => {
-					Android.Widget.Toast.MakeText(this, e.Message, Android.Widget.ToastLength.Long).Show();
-				});
-			}
-		}
-
-
 		public void OnDisconnected()
 		{
-			mInProgress = false;
 			apiClient = null;
 		}
 
@@ -226,11 +177,10 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
+			builder.SetPositiveButton("OK", (s, e) => { OnStop(); });
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}
-
 
 		protected override void OnDestroy()
 		{

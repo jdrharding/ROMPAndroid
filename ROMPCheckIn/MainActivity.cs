@@ -93,7 +93,7 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { base.OnStop; });
+			builder.SetPositiveButton("OK", (s, e) => { OnStop(); });
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}

@@ -15,7 +15,6 @@ namespace ROMPCheckIn
 	[Service(Exported = false)]
 	public class GeofenceTransitionsIntentService : IntentService
 	{
-		private IGoogleApiClient mGoogleApiClient;
 		ISharedPreferences mSharedPreferences;
 
 		public GeofenceTransitionsIntentService ()
@@ -48,28 +47,28 @@ namespace ROMPCheckIn
 				// Create a DataItem when a user enters one of the geofences. The wearable app will receie this and create a
 				// notification to prompt him/her to check in
 				mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
-				string sessionKey = mSharedPreferences.GetString ("SessionKey");
+				string sessionKey = mSharedPreferences.GetString("SessionKey", "");
 				var locSvc = new ROMPLocation ();
 				string result = "";
-				int checkintype;
+				int checkintype = -1;
 				if (transitionType == Geofence.GeofenceTransitionEnter) {
-					List<Geofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
+					IList<IGeofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
 					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;
-					result = locSvc.CheckIn (sessionKey, triggeredGeofenceId);
+					result = locSvc.CheckIn (sessionKey, int.Parse(triggeredGeofenceId));
 					checkintype = 0;
 				} else if (transitionType == Geofence.GeofenceTransitionExit) {
-					List<Geofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
+					IList<IGeofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
 					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;
-					result = locSvc.CheckOut (sessionKey, triggeredGeofenceId);
+					result = locSvc.CheckOut (sessionKey, int.Parse(triggeredGeofenceId));
 					checkintype = 1;
 				}
 
 				Intent notificationIntent = new Intent(this, typeof(CheckInPassiveActivity));
 				TaskStackBuilder stackBldr = TaskStackBuilder.Create (this);
-				stackBldr.AddParentStack (Class.FromType(typeof(CheckInPassiveActivity)));
+				stackBldr.AddParentStack (Java.Lang.Class.FromType(typeof(CheckInPassiveActivity)));
 				stackBldr.AddNextIntent (notificationIntent);
 
-				PendingIntent notificationPendingIntent = stackBldr.GetPendingIntent (0, (int)PendingIntentFlags.UpdateCurrent);
+				PendingIntent notificationPendingIntent = stackBldr.GetPendingIntent (0, PendingIntentFlags.UpdateCurrent);
 
 				if (result == "Fail" && checkintype == 0) {
 					Notification.Builder notBuilder = new Notification.Builder (this)
@@ -78,8 +77,8 @@ namespace ROMPCheckIn
 						.SetContentText ("You Failed To Check In To Your Location")
 						.SetContentIntent (notificationPendingIntent)
 						.SetAutoCancel (true);
-					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
-					notificationManager.Notify(666, notBuilder.Build());
+					NotificationManager notificationManager = (NotificationManager)GetSystemService (NotificationService);
+					notificationManager.Notify (666, notBuilder.Build ());
 				} else if (result == "Fail" && checkintype == 1) {
 					Notification.Builder notBuilder = new Notification.Builder (this)
 						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
@@ -87,8 +86,8 @@ namespace ROMPCheckIn
 						.SetContentText ("You Failed To Check Out Of Your Location")
 						.SetContentIntent (notificationPendingIntent)
 						.SetAutoCancel (true);
-					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
-					notificationManager.Notify(666, notBuilder.Build());
+					NotificationManager notificationManager = (NotificationManager)GetSystemService (NotificationService);
+					notificationManager.Notify (666, notBuilder.Build ());
 				} else if (result == "Success" && checkintype == 0) {
 					Notification.Builder notBuilder = new Notification.Builder (this)
 						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
@@ -96,8 +95,8 @@ namespace ROMPCheckIn
 						.SetContentText ("You Successfully Checked In To Your Location")
 						.SetContentIntent (notificationPendingIntent)
 						.SetAutoCancel (true);
-					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
-					notificationManager.Notify(666, notBuilder.Build());
+					NotificationManager notificationManager = (NotificationManager)GetSystemService (NotificationService);
+					notificationManager.Notify (666, notBuilder.Build ());
 				} else if (result == "Success" && checkintype == 1) {
 					Notification.Builder notBuilder = new Notification.Builder (this)
 						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
@@ -105,14 +104,19 @@ namespace ROMPCheckIn
 						.SetContentText ("You Successfully Checked Out Of Your Location")
 						.SetContentIntent (notificationPendingIntent)
 						.SetAutoCancel (true);
-					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
-					notificationManager.Notify(666, notBuilder.Build());
+					NotificationManager notificationManager = (NotificationManager)GetSystemService (NotificationService);
+					notificationManager.Notify (666, notBuilder.Build ());
+				} else {
+					Notification.Builder notBuilder = new Notification.Builder (this)
+						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
+						.SetContentTitle ("Service Failed")
+						.SetContentText ("Check In/Check Out Unavailable")
+						.SetContentIntent (notificationPendingIntent)
+						.SetAutoCancel (true);
+					NotificationManager notificationManager = (NotificationManager)GetSystemService (NotificationService);
+					notificationManager.Notify (666, notBuilder.Build ());
 				}
 			}
-		}
-
-		private string getGeofenceTransitionDetails(Context context, int geofenceTransition, List<Geofence> triggeringGeofences) {
-			
 		}
 
 		public void OnConnected (Android.OS.Bundle connectionHint)
