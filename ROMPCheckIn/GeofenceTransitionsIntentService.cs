@@ -4,16 +4,20 @@ using Android.App;
 using Android.Gms.Wearable;
 using Android.Gms.Location;
 using Android.Util;
+using Android.Content;
+using Android.Support.V4;
 using Java.Util.Concurrent;
 using System.Collections.Generic;
+using ROMPCheckIn.cms.romponline.com;
 
 namespace ROMPCheckIn
 {
 	[Service(Exported = false)]
-	public class GeofenceTransitionsIntentService : IntentService, 
-	IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener
+	public class GeofenceTransitionsIntentService : IntentService
 	{
 		private IGoogleApiClient mGoogleApiClient;
+		ISharedPreferences mSharedPreferences;
+
 		public GeofenceTransitionsIntentService ()
 			:base(typeof(GeofenceTransitionsIntentService).Name)
 		{
@@ -22,11 +26,6 @@ namespace ROMPCheckIn
 		public override void OnCreate ()
 		{
 			base.OnCreate ();
-			mGoogleApiClient = new GoogleApiClientBuilder (this)
-				.AddApi(WearableClass.API)
-				.AddConnectionCallbacks (this)
-				.AddOnConnectionFailedListener (this)
-				.Build ();
 		}
 
 		/// <summary>
@@ -41,38 +40,79 @@ namespace ROMPCheckIn
 			var geofencingEvent = GeofencingEvent.FromIntent (intent);
 			if (geofencingEvent.HasError) {
 				int errorCode = geofencingEvent.ErrorCode;
-				//Log.Error ("Constants.TAG", "Location Services error: " + errorCode);
+				Log.Error ("ROMPCheckIn", "Location Services error: " + errorCode);
+				return;
 			} else {
 				// Get the type of Geofence transition (i.e. enter or exit in this sample).
 				int transitionType = geofencingEvent.GeofenceTransition;
 				// Create a DataItem when a user enters one of the geofences. The wearable app will receie this and create a
 				// notification to prompt him/her to check in
-				if (transitionType == Geofence.GeofenceTransitionEnter | transitionType == Geofence.GeofenceTransitionExit) {
-					// Connect to the Google Api service in preparation for sending a DataItem
-					mGoogleApiClient.BlockingConnect (500, TimeUnit.Milliseconds);
+				mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
+				string sessionKey = mSharedPreferences.GetString ("SessionKey");
+				var locSvc = new ROMPLocation ();
+				string result = "";
+				int checkintype;
+				if (transitionType == Geofence.GeofenceTransitionEnter) {
 					List<Geofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
-					// Get the geofence ID triggered. Note that only one geofence can be triggered at a time in this example, but in some cases
-					// you might want to consider the full list of geofences triggered
 					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;
-					// Create a DataItem with this geofence's id. The wearable can use this to create a notification
-					PutDataMapRequest putDataMapRequest = PutDataMapRequest.Create ("Constants.GEOFENCE_DATA_ITEM_PATH");
-					putDataMapRequest.DataMap.PutString ("Constants.KEY_GEOFENCE_ID", triggeredGeofenceId);
-					if (mGoogleApiClient.IsConnected) {
-						WearableClass.DataApi.PutDataItem (
-							mGoogleApiClient, putDataMapRequest.AsPutDataRequest ()).Await ();
-					} else {
-						Log.Error ("Constants.TAG", "Failed to send data item: " + putDataMapRequest +
-							" - disconnected from Google Play Services");
-					}
-					mGoogleApiClient.Disconnect ();
-				} else if (Geofence.GeofenceTransitionExit == transitionType) {
-					// Delete the data item when leaving a geofence region
-					mGoogleApiClient.BlockingConnect (500, TimeUnit.Milliseconds);
-					Android.Net.Uri uri = new Android.Net.Uri.Builder().Path ("Constants.GEOFENCE_DATA_ITEM_URI").Build();
-					WearableClass.DataApi.DeleteDataItems (mGoogleApiClient, uri).Await ();
-					mGoogleApiClient.Disconnect ();
+					result = locSvc.CheckIn (sessionKey, triggeredGeofenceId);
+					checkintype = 0;
+				} else if (transitionType == Geofence.GeofenceTransitionExit) {
+					List<Geofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
+					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;
+					result = locSvc.CheckOut (sessionKey, triggeredGeofenceId);
+					checkintype = 1;
+				}
+
+				Intent notificationIntent = new Intent(this, typeof(CheckInPassiveActivity));
+				TaskStackBuilder stackBldr = TaskStackBuilder.Create (this);
+				stackBldr.AddParentStack (Class.FromType(typeof(CheckInPassiveActivity)));
+				stackBldr.AddNextIntent (notificationIntent);
+
+				PendingIntent notificationPendingIntent = stackBldr.GetPendingIntent (0, (int)PendingIntentFlags.UpdateCurrent);
+
+				if (result == "Fail" && checkintype == 0) {
+					Notification.Builder notBuilder = new Notification.Builder (this)
+						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
+						.SetContentTitle ("Check In Failed")
+						.SetContentText ("You Failed To Check In To Your Location")
+						.SetContentIntent (notificationPendingIntent)
+						.SetAutoCancel (true);
+					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
+					notificationManager.Notify(666, notBuilder.Build());
+				} else if (result == "Fail" && checkintype == 1) {
+					Notification.Builder notBuilder = new Notification.Builder (this)
+						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
+						.SetContentTitle ("Check Out Failed")
+						.SetContentText ("You Failed To Check Out Of Your Location")
+						.SetContentIntent (notificationPendingIntent)
+						.SetAutoCancel (true);
+					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
+					notificationManager.Notify(666, notBuilder.Build());
+				} else if (result == "Success" && checkintype == 0) {
+					Notification.Builder notBuilder = new Notification.Builder (this)
+						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
+						.SetContentTitle ("Check In Succeeded")
+						.SetContentText ("You Successfully Checked In To Your Location")
+						.SetContentIntent (notificationPendingIntent)
+						.SetAutoCancel (true);
+					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
+					notificationManager.Notify(666, notBuilder.Build());
+				} else if (result == "Success" && checkintype == 1) {
+					Notification.Builder notBuilder = new Notification.Builder (this)
+						.SetSmallIcon (Android.Resource.Drawable.IcDialogAlert)
+						.SetContentTitle ("Check Out Succeeded")
+						.SetContentText ("You Successfully Checked Out Of Your Location")
+						.SetContentIntent (notificationPendingIntent)
+						.SetAutoCancel (true);
+					NotificationManager notificationManager = (NotificationManager)GetSystemService(NotificationService);
+					notificationManager.Notify(666, notBuilder.Build());
 				}
 			}
+		}
+
+		private string getGeofenceTransitionDetails(Context context, int geofenceTransition, List<Geofence> triggeringGeofences) {
+			
 		}
 
 		public void OnConnected (Android.OS.Bundle connectionHint)

@@ -1,8 +1,10 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Security;
 using ROMPCheckIn.cms.romponline.com;
 
 using Android.App;
@@ -22,16 +24,15 @@ namespace ROMPCheckIn
 	[Activity (Label = "CheckInPassiveActivity")]			
 	public class CheckInPassiveActivity : ActionBarActivity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, ResultCallback<Statuses>
 	{
-		List<IGeofence> geofenceList;
-
 		IGoogleApiClient apiClient;
-
+		List<IGeofence> geofenceList;
+		bool mGeofencesAdded;
 		PendingIntent geofenceRequestIntent;
+		ISharedPreferences mSharedPreferences;
 
 		enum RequestType { Add }
 		RequestType mRequestType;
 
-		bool mGeofencesAdded;
 		bool mInProgress;
 
 		protected override void OnCreate (Bundle bundle)
@@ -42,10 +43,88 @@ namespace ROMPCheckIn
 			geofenceList = new List<IGeofence> ();
 			geofenceRequestIntent = null;
 			mGeofencesAdded = false;
-
+			mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
+			string sessionKey = Intent.GetStringExtra ("SessionKey");
+			int groupID = Intent.GetIntExtra ("GroupID", 0);
+			int userID = Intent.GetIntExtra ("UserID", 0);
+			ISharedPreferencesEditor editor = mSharedPreferences.Edit ();
+			editor.PutInt ("GroupID", groupID);
+			editor.PutInt ("UserID", userID);
+			editor.PutString ("SessionKey", sessionKey);
 			CreateGeofences ();
 
+			BuildGoogleApiClient ();
+
 			// Create your application here
+		}
+
+		public void BuildGoogleApiClient() {
+			apiClient = new GoogleApiClientBuilder ()
+				.AddConnectionCallbacks (this)
+				.AddOnConnectionFailedListener (this)
+				.AddApi (LocationServices.API)
+				.Build ();
+		}
+
+		protected override void OnStart ()
+		{
+			base.OnStart ();
+			apiClient.Connect ();
+		}
+
+		protected override void OnStop()
+		{
+			base.OnStop ();
+			apiClient.Disconnect ();
+		}
+
+		public void OnConnected(Bundle connectionHint)
+		{
+			Log.Debug ("ROMPCheckIn", "Connected to Google API Client");
+		}
+
+		public void OnConnectionFailed(Android.Gms.Common.ConnectionResult result)
+		{			
+			Log.Error ("ERROR", "Connection to Google Play Services Failed with Code " + errorCode);
+		}
+
+		public void OnConnectionSuspended(int i)
+		{
+			Log.Error ("ERROR", "Connection Suspended");
+		}
+
+		private GeofencingRequest getGeofencingRequest () {
+			GeofencingRequest.Builder builder = new GeofencingRequest.Builder ();
+			builder.SetInitialTrigger (GeofencingRequest.InitialTriggerEnter);
+			builder.AddGeofences (geofenceList);
+			return builder.Build ();
+		}
+
+		private void logSecurityException(SecurityException securityEx) {
+			Log.Error ("ROMPCheckIn", "Invalid location permissions. ACCESS_FINE_LOCATION required", securityEx);
+		}
+
+		public void OnResult(Statuses status) {
+			if (status.IsSuccess) {
+				var myHandler = new Handler ();
+				myHandler.Post (() => {
+					Android.Widget.Toast.MakeText (this, "Geofencing Started.", Android.Widget.ToastLength.Long).Show ();
+				});
+			} else {
+				var myHandler = new Handler ();
+				myHandler.Post (() => {
+					Android.Widget.Toast.MakeText (this, "Error Starting Geofencing" +
+						".", Android.Widget.ToastLength.Long).Show ();
+				});
+			}
+		}
+
+		private PendingIntent getGeofencePendingIntent() {
+			if (geofenceRequestIntent != null) {
+				return geofenceRequestIntent;
+			}
+			Intent intent = new Intent (this, GeofenceTransitionPendingIntent.Class);
+			return PendingIntent.GetService (this, 0, intent, PendingIntentFlags.UpdateCurrent);
 		}
 
 		bool IsGooglePlayServicesAvailable
@@ -73,6 +152,7 @@ namespace ROMPCheckIn
 
 		public void CreateGeofences ()
 		{
+
 			string sessionKey = Intent.GetStringExtra ("SessionKey");
 			int groupID = Intent.GetIntExtra ("GroupID", 0);
 			int userID = Intent.GetIntExtra ("UserID", 0);
@@ -86,30 +166,13 @@ namespace ROMPCheckIn
 					.SetTransitionTypes (Geofence.GeofenceTransitionEnter | Geofence.GeofenceTransitionExit)
 					.Build ());
 			}
-		}
-
-		public void BuildGoogleApiClient() {
-			apiClient = new GoogleApiClientBuilder ()
-				.AddConnectionCallbacks (this)
-				.AddOnConnectionFailedListener (this)
-				.AddApi (LocationServices.API)
-				.Build ();
-		}
-
-		private GeofencingRequest getGeofencingRequest () {
-			GeofencingRequest.Builder builder = new GeofencingRequest.Builder ();
-			builder.SetInitialTrigger (GeofencingRequest.InitialTriggerEnter);
-			builder.AddGeofences (geofenceList);
-			return builder.Build ();
-		}
-
-		private PendingIntent getGeofencePendingIntent() {
-			if (geofenceRequestIntent != null) {
-				return geofenceRequestIntent;
+			try {
+				LocationServices.GeofencingApi.AddGeofences(apiClient, getGeofencingRequest(), getGeofencePendingIntent()).SetResultCallback(this);
+			} catch (SecurityException securityEx) {
+				logSecurityException (securityEx);
 			}
-			Intent intent = new Intent (this, GeofenceTransitionPendingIntent.Class);
-			return PendingIntent.GetService (this, 0, intent, PendingIntentFlags.UpdateCurrent);
 		}
+
 
 		public void StartGeofencing() {
 			if (!apiClient.IsConnected) {
@@ -151,50 +214,11 @@ namespace ROMPCheckIn
 			}
 		}
 
-		public void OnConnectionFailed(Android.Gms.Common.ConnectionResult result)
-		{
-			mInProgress = false;
-
-			if (result.HasResolution) {
-				try {
-					result.StartResolutionForResult (this, 1);
-				} catch (Exception ex) {
-					Log.Error ("ERROR", "Exception while resolving connection error.", ex);
-				}
-			} else {
-				int errorCode = result.ErrorCode;
-				Log.Error ("ERROR", "Connection to Google Play Services Failed with Code " + errorCode);
-			}
-		}
-
-		public void OnConnectionSuspended(int i)
-		{
-		}
-
-		public void OnConnected(Bundle connectionHint)
-		{
-			
-		}
 
 		public void OnDisconnected()
 		{
 			mInProgress = false;
 			apiClient = null;
-		}
-
-		public void OnResult(Statuses status) {
-			if (status.IsSuccess) {
-				var myHandler = new Handler();
-				myHandler.Post(() => {
-					Android.Widget.Toast.MakeText(this, "Geofencing Started.", Android.Widget.ToastLength.Long).Show();
-				});
-			}
-		}
-
-		protected override void OnStart ()
-		{
-			base.OnStart ();
-			apiClient.Connect ();
 		}
 
 		public override void OnBackPressed() {
@@ -207,11 +231,6 @@ namespace ROMPCheckIn
 			builder.Create().Show();
 		}
 
-		protected override void OnStop()
-		{
-			base.OnStop ();
-			apiClient.Disconnect ();
-		}
 
 		protected override void OnDestroy()
 		{
