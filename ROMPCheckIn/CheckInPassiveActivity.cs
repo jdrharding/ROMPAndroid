@@ -22,33 +22,32 @@ using Android.Support.V7.App;
 namespace ROMPCheckIn
 {
 	[Activity (Label = "CheckInPassiveActivity")]			
-	public class CheckInPassiveActivity : ActionBarActivity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, IResultCallback
+	public class CheckInPassiveActivity : Activity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, IResultCallback
 	{
 		IGoogleApiClient apiClient;
 		List<IGeofence> geofenceList;
 		PendingIntent geofenceRequestIntent;
 		ISharedPreferences mSharedPreferences;
+		List<string> connectedGeofences;
 
 		protected override void OnCreate (Bundle bundle)
 		{
 			RequestWindowFeature(WindowFeatures.NoTitle);
 			base.OnCreate (bundle);
-			SetContentView (Resource.Layout.CheckIn);
+			SetContentView (Resource.Layout.CheckInPassive);
 			geofenceList = new List<IGeofence> ();
 			geofenceRequestIntent = null;
-			mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
 			string sessionKey = Intent.GetStringExtra ("SessionKey");
 			int groupID = Intent.GetIntExtra ("GroupID", 0);
 			int userID = Intent.GetIntExtra ("UserID", 0);
+			mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
 			ISharedPreferencesEditor editor = mSharedPreferences.Edit ();
-			editor.PutInt ("GroupID", groupID);
-			editor.PutInt ("UserID", userID);
 			editor.PutString ("SessionKey", sessionKey);
+			editor.Commit ();
+			FindViewById<TextView>(Resource.Id.btnBegin).Click += BeginGeofencing;
+			connectedGeofences = new List<string> ();
 			CreateGeofences ();
-
 			BuildGoogleApiClient ();
-
-			// Create your application here
 		}
 
 		public void BuildGoogleApiClient() {
@@ -57,6 +56,7 @@ namespace ROMPCheckIn
 				.AddOnConnectionFailedListener (this)
 				.AddApi (LocationServices.API)
 				.Build ();
+			apiClient.Connect ();
 		}
 
 		protected override void OnStart ()
@@ -117,7 +117,7 @@ namespace ROMPCheckIn
 			if (geofenceRequestIntent != null) {
 				return geofenceRequestIntent;
 			}
-			Intent intent = new Intent (this, GeofenceTransitionPendingIntent.Class);
+			Intent intent = new Intent (this, Java.Lang.Class.FromType(typeof(GeofenceTransitionsIntentService)));
 			return PendingIntent.GetService (this, 0, intent, PendingIntentFlags.UpdateCurrent);
 		}
 
@@ -159,11 +159,7 @@ namespace ROMPCheckIn
 					.SetExpirationDuration (Geofence.NeverExpire)
 					.SetTransitionTypes (Geofence.GeofenceTransitionEnter | Geofence.GeofenceTransitionExit)
 					.Build ());
-			}
-			try {
-				LocationServices.GeofencingApi.AddGeofences(apiClient, getGeofencingRequest(), getGeofencePendingIntent()).SetResultCallback(this);
-			} catch (SecurityException securityEx) {
-				logSecurityException (securityEx);
+				connectedGeofences.Add (fc.LocationName);
 			}
 		}
 
@@ -177,7 +173,14 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { OnStop(); });
+			builder.SetPositiveButton("OK", (s, e) => 
+				{ 
+					mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
+					ISharedPreferencesEditor editor = mSharedPreferences.Edit ();
+					editor.Remove ("SessionKey");
+					editor.Commit ();
+					Finish(); 
+				});
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}
@@ -187,15 +190,36 @@ namespace ROMPCheckIn
 			base.OnDestroy ();
 		}
 
+		public void BeginGeofencing(object sender, EventArgs eventArgs) {
+			if (!apiClient.IsConnected) {
+				var myHandler = new Handler ();
+				myHandler.Post (() => {
+					Android.Widget.Toast.MakeText (this, "Google API Not Connected. Try Again.", Android.Widget.ToastLength.Long).Show ();
+				});
+				return;
+			}
+
+			try {
+				LocationServices.GeofencingApi.AddGeofences(apiClient, getGeofencingRequest(), getGeofencePendingIntent()).SetResultCallback(this);
+				string geofenceAnnounce = "Geofences Active At The Following Locations:\n";
+				foreach (string geofName in connectedGeofences) {
+					geofenceAnnounce += geofName + "\n";
+				}
+				var myHandler = new Handler ();
+				myHandler.Post (() => {
+					Android.Widget.Toast.MakeText (this, geofenceAnnounce, Android.Widget.ToastLength.Long).Show ();
+				});
+				FindViewById<Button>(Resource.Id.btnBegin).Visibility = ViewStates.Invisible;
+				FindViewById<TextView>(Resource.Id.lblConfirm).Visibility = ViewStates.Invisible;
+				FindViewById<TextView>(Resource.Id.lblText).Visibility = ViewStates.Visible;
+			} catch (SecurityException securityEx) {
+				logSecurityException (securityEx);
+			}
+		}
+
 		protected override void OnResume()
 		{
 			base.OnResume();
-		}
-
-		protected override void OnPause()
-		{
-			base.OnPause();
-		}
+		}	
 	}
 }
-

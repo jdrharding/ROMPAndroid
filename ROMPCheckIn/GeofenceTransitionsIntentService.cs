@@ -33,8 +33,7 @@ namespace ROMPCheckIn
 		/// <param name="intent">The intent sent by Location Services. This Intent is provided to Location Services (inside a PendingIntent)
 		/// when AddGeofences() is called</param>
 		protected override void OnHandleIntent (Android.Content.Intent intent)
-		{
-			
+		{			
 			// First check for errors
 			var geofencingEvent = GeofencingEvent.FromIntent (intent);
 			if (geofencingEvent.HasError) {
