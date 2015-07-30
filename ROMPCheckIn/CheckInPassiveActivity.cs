@@ -21,14 +21,14 @@ using Android.Support.V7.App;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "CheckInPassiveActivity")]			
+	[Activity (Label = "ROMP Check-In",  LaunchMode = Android.Content.PM.LaunchMode.SingleTop)]			
 	public class CheckInPassiveActivity : Activity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, IResultCallback
 	{
 		IGoogleApiClient apiClient;
 		List<IGeofence> geofenceList;
 		PendingIntent geofenceRequestIntent;
 		ISharedPreferences mSharedPreferences;
-		List<string> connectedGeofences;
+		List<ROMPGeofence> connectedGeofences;
 
 		protected override void OnCreate (Bundle bundle)
 		{
@@ -56,7 +56,6 @@ namespace ROMPCheckIn
 				.AddOnConnectionFailedListener (this)
 				.AddApi (LocationServices.API)
 				.Build ();
-			apiClient.Connect ();
 		}
 
 		protected override void OnStart ()
@@ -107,8 +106,7 @@ namespace ROMPCheckIn
 			} else {
 				var myHandler = new Handler ();
 				myHandler.Post (() => {
-					Android.Widget.Toast.MakeText (this, "Error Starting Geofencing" +
-						".", Android.Widget.ToastLength.Long).Show ();
+					Android.Widget.Toast.MakeText (this, "Error Starting Geofencing.", Android.Widget.ToastLength.Long).Show ();
 				});
 			}
 		}
@@ -159,7 +157,7 @@ namespace ROMPCheckIn
 					.SetExpirationDuration (Geofence.NeverExpire)
 					.SetTransitionTypes (Geofence.GeofenceTransitionEnter | Geofence.GeofenceTransitionExit)
 					.Build ());
-				connectedGeofences.Add (fc.LocationName);
+				connectedGeofences.Add (new ROMPGeofence(fc.LocationID, fc.Latitude, fc.Longitude));
 			}
 		}
 
@@ -202,8 +200,8 @@ namespace ROMPCheckIn
 			try {
 				LocationServices.GeofencingApi.AddGeofences(apiClient, getGeofencingRequest(), getGeofencePendingIntent()).SetResultCallback(this);
 				string geofenceAnnounce = "Geofences Active At The Following Locations:\n";
-				foreach (string geofName in connectedGeofences) {
-					geofenceAnnounce += geofName + "\n";
+				foreach (ROMPGeofence geofName in connectedGeofences) {
+					geofenceAnnounce += geofName.Id + "\n";
 				}
 				var myHandler = new Handler ();
 				myHandler.Post (() => {

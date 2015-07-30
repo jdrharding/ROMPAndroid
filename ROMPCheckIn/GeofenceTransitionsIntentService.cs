@@ -53,7 +53,8 @@ namespace ROMPCheckIn
 				if (transitionType == Geofence.GeofenceTransitionEnter) {
 					IList<IGeofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
 					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;
-					result = locSvc.CheckIn (sessionKey, int.Parse(triggeredGeofenceId));
+					Android.Locations.Location geoLocation = geofencingEvent.TriggeringLocation[0];
+					result = locSvc.CheckInWithLocation(sessionKey, int.Parse(triggeredGeofenceId), geoLocation.Latitude, geoLocation.Longitude);
 					checkintype = 0;
 				} else if (transitionType == Geofence.GeofenceTransitionExit) {
 					IList<IGeofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;

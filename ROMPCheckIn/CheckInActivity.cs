@@ -19,7 +19,7 @@ using Android.Locations;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "CheckInActivity")]			
+	[Activity (Label = "ROMP Check-In")]			
 	public class CheckInActivity : Activity, ILocationListener
 	{
 

@@ -14,7 +14,7 @@ using Android.Widget;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ChooseModeActivity")]			
+	[Activity (Label = "ROMP Check-In")]			
 	public class ChooseModeActivity : Activity
 	{		
 		protected override void OnCreate (Bundle bundle)
