@@ -43,14 +43,6 @@
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:textColor="#ff000000" />
-    <CheckBox
-        android:text="Remember Me"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/cbStoreUser"
-        android:textColor="#ffffffff"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="15dp" />
     <TextView
         android:text="Password:"
         android:textAppearance="?android:attr/textAppearanceMedium"
@@ -69,6 +61,14 @@
         android:layout_marginLeft="15dp"
         android:background="#ffffffff"
         android:textColor="#ff000000" />
+    <CheckBox
+        android:text="Remember Me"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/cbStoreUser"
+        android:textColor="#ffffffff"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp" />
     <Button
         android:text="Login"
         android:layout_width="200dp"

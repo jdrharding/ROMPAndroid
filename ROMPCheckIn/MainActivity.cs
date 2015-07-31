@@ -30,42 +30,38 @@ namespace ROMPCheckIn
 			SetContentView (Resource.Layout.Main);
 			mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
 			string storedUser = mSharedPreferences.GetString ("StoredUser", "NONE");
-			if (!storedUser.Equals("NONE")) {
+			string storedPass = mSharedPreferences.GetString ("StoredPass", "NONE");
+			if (!storedUser.Equals("NONE") || !storedPass.Equals("NONE")) {
 				FindViewById<EditText>(Resource.Id.txtUsername).SetText(storedUser, TextView.BufferType.Normal);
+				FindViewById<EditText>(Resource.Id.txtPassword).SetText(storedPass, TextView.BufferType.Normal);
 				FindViewById<CheckBox>(Resource.Id.cbStoreUser).Checked = true;
 			}
 			FindViewById<CheckBox>(Resource.Id.cbStoreUser).CheckedChange += delegate {
 				ISharedPreferencesEditor cbeditor = mSharedPreferences.Edit ();
 				cbeditor.Remove("StoredUser");
+				cbeditor.Remove("StoredPass");
 				cbeditor.Commit();
 			};
 			Button button = FindViewById<Button> (Resource.Id.btnLogin);
 			button.Click += delegate {
 				TextView txtPassword = FindViewById<TextView> (Resource.Id.txtPassword);
-				TextView txtUN = FindViewById<TextView> (Resource.Id.txtUsername);
-				string email = txtUN.Text;
-				Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
-				Match match = regex.Match(email);
-				if (string.IsNullOrEmpty(txtPassword.Text) || string.IsNullOrEmpty(txtUN.Text)) {
+				TextView txtUsername = FindViewById<TextView> (Resource.Id.txtUsername);
+				if (string.IsNullOrEmpty(txtPassword.Text) || string.IsNullOrEmpty(txtUsername.Text)) {
 					var myHandler = new Handler();
 					myHandler.Post(() => {
 						Android.Widget.Toast.MakeText(this, "Please Provide a Username and Password.", Android.Widget.ToastLength.Long).Show();
-					});
-				} else if (!match.Success){
-					var myHandler = new Handler();
-					myHandler.Post(() => {
-						Android.Widget.Toast.MakeText(this, "Not a valid Email Address.", Android.Widget.ToastLength.Long).Show();
 					});
 				} else {
 					try {						
 						var locSvc = new ROMPLocation();
 						var loginResp = new LoginResponse();
-						loginResp = locSvc.LearnerLogin(txtUN.Text, txtPassword.Text);
+						loginResp = locSvc.LearnerLogin(txtUsername.Text, txtPassword.Text);
 						if (loginResp.Success) {
 							CheckBox rememberMe = FindViewById<CheckBox> (Resource.Id.cbStoreUser);
 							ISharedPreferencesEditor editor = mSharedPreferences.Edit ();
 							if (rememberMe.Checked) {
-								editor.PutString("StoredUser", txtUN.Text);
+								editor.PutString("StoredUser", txtUsername.Text);
+								editor.PutString("StoredPass", txtPassword.Text);
 							} else {
 								editor.Remove("StoredUser");
 							}
@@ -83,7 +79,7 @@ namespace ROMPCheckIn
 								nextActivity.PutExtra("GroupID", loginResp.GroupID);
 								nextActivity.PutExtra("UserID", loginResp.UserID);
 								StartActivity(nextActivity);
-								Finish();
+								System.Environment.Exit(0); 
 							}
 						} else {
 							var myHandler = new Handler();

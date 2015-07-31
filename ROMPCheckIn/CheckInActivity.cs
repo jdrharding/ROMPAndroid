@@ -100,7 +100,7 @@ namespace ROMPCheckIn
 									; 
 								var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1-a)); 
 								var d = R * c;
-								if (d <= 1.0) {
+								if (d <= 0.25) {
 									var locSvc = new ROMPLocation ();
 									string result = locSvc.CheckIn(sessionKey, fc.LocationID);
 									if (result == "Success"){
@@ -199,7 +199,7 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { Finish(); });
+			builder.SetPositiveButton("OK", (s, e) => { System.Environment.Exit(0);  });
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}

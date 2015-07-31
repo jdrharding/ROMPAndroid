@@ -33,7 +33,7 @@ namespace ROMPCheckIn
 		/// <param name="intent">The intent sent by Location Services. This Intent is provided to Location Services (inside a PendingIntent)
 		/// when AddGeofences() is called</param>
 		protected override void OnHandleIntent (Android.Content.Intent intent)
-		{			
+		{	
 			// First check for errors
 			var geofencingEvent = GeofencingEvent.FromIntent (intent);
 			if (geofencingEvent.HasError) {
@@ -53,7 +53,7 @@ namespace ROMPCheckIn
 				if (transitionType == Geofence.GeofenceTransitionEnter) {
 					IList<IGeofence> triggeredGeofences = geofencingEvent.TriggeringGeofences;
 					string triggeredGeofenceId = geofencingEvent.TriggeringGeofences[0].RequestId;
-					Android.Locations.Location geoLocation = geofencingEvent.TriggeringLocation[0];
+					Android.Locations.Location geoLocation = geofencingEvent.TriggeringLocation;
 					result = locSvc.CheckInWithLocation(sessionKey, int.Parse(triggeredGeofenceId), geoLocation.Latitude, geoLocation.Longitude);
 					checkintype = 0;
 				} else if (transitionType == Geofence.GeofenceTransitionExit) {
@@ -64,6 +64,7 @@ namespace ROMPCheckIn
 				}
 
 				Intent notificationIntent = new Intent(this, typeof(CheckInPassiveActivity));
+				//notificationIntent.SetFlags (ActivityFlags.SingleTop);
 				TaskStackBuilder stackBldr = TaskStackBuilder.Create (this);
 				stackBldr.AddParentStack (Java.Lang.Class.FromType(typeof(CheckInPassiveActivity)));
 				stackBldr.AddNextIntent (notificationIntent);

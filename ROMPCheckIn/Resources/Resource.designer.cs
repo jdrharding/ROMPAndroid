@@ -3342,8 +3342,8 @@ namespace ROMPCheckIn
 			// aapt resource value: 0x7f09006b
 			public const int cbPassive = 2131296363;
 			
-			// aapt resource value: 0x7f090075
-			public const int cbStoreUser = 2131296373;
+			// aapt resource value: 0x7f090077
+			public const int cbStoreUser = 2131296375;
 			
 			// aapt resource value: 0x7f09004f
 			public const int checkbox = 2131296335;
@@ -3453,8 +3453,8 @@ namespace ROMPCheckIn
 			// aapt resource value: 0x7f09006c
 			public const int lblPassiveEx = 2131296364;
 			
-			// aapt resource value: 0x7f090076
-			public const int lblPassword = 2131296374;
+			// aapt resource value: 0x7f090075
+			public const int lblPassword = 2131296373;
 			
 			// aapt resource value: 0x7f090066
 			public const int lblText = 2131296358;
@@ -3663,8 +3663,8 @@ namespace ROMPCheckIn
 			// aapt resource value: 0x7f090045
 			public const int topPanel = 2131296325;
 			
-			// aapt resource value: 0x7f090077
-			public const int txtPassword = 2131296375;
+			// aapt resource value: 0x7f090076
+			public const int txtPassword = 2131296374;
 			
 			// aapt resource value: 0x7f090074
 			public const int txtUsername = 2131296372;
