@@ -14,9 +14,9 @@ using Android.Widget;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In")]			
+	[Activity (Label = "ROMP Check-In", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]			
 	public class ChooseModeActivity : Activity
-	{		
+	{
 		protected override void OnCreate (Bundle bundle)
 		{
 			RequestWindowFeature(WindowFeatures.NoTitle);
@@ -81,7 +81,10 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { System.Environment.Exit(0);  });
+			builder.SetPositiveButton("OK", (s, e) =>  
+				{ 
+					System.Environment.Exit(0);
+				});
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}

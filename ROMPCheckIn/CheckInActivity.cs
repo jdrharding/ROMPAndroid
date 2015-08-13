@@ -19,7 +19,7 @@ using Android.Locations;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In")]			
+	[Activity (Label = "ROMP Check-In", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]			
 	public class CheckInActivity : Activity, ILocationListener
 	{
 
@@ -43,9 +43,13 @@ namespace ROMPCheckIn
 			var locSvc = new ROMPLocation ();
 			//myFacilities[] = new FacilityCoordinates();
 			myFacilities = locSvc.GetLocations (sessionKey, groupID);
-			FindViewById<TextView>(Resource.Id.btnCheckIn).Click += btnCheckIn_OnClick;
-
-			InitializeLocationManager();
+			if (myFacilities.Count () > 0) {
+				FindViewById<Button> (Resource.Id.btnCheckIn).Click += btnCheckIn_OnClick;
+				InitializeLocationManager();
+			} else {
+				FindViewById<Button> (Resource.Id.btnCheckIn).Visibility = ViewStates.Invisible;
+				FindViewById<TextView> (Resource.Id.lblText).Text = "You have no locations to check in to. Please start the application during a rotation to properly utilize the functionality. Thank you.";
+			}
 		}
 
 		void InitializeLocationManager()
@@ -199,7 +203,10 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { System.Environment.Exit(0);  });
+			builder.SetPositiveButton("OK", (s, e) => 
+				{ 
+					System.Environment.Exit(0);
+				});
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}
@@ -218,8 +225,10 @@ namespace ROMPCheckIn
 		{
 			base.OnResume();
 			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = false;
-			_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this);
-			FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = true;
+			if (myFacilities.Count () > 0) {
+				_locationManager.RequestLocationUpdates(_locationProvider, 0, 0, this);
+				FindViewById<TextView> (Resource.Id.btnCheckIn).Enabled = true;
+			}
 		}
 
 		protected override void OnPause()

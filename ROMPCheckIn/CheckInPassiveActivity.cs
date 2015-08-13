@@ -21,7 +21,7 @@ using Android.Support.V7.App;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In")]			
+	[Activity (Label = "ROMP Check-In", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]			
 	public class CheckInPassiveActivity : Activity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, IResultCallback
 	{
 		IGoogleApiClient apiClient;
@@ -29,6 +29,7 @@ namespace ROMPCheckIn
 		PendingIntent geofenceRequestIntent;
 		ISharedPreferences mSharedPreferences;
 		List<ROMPGeofence> connectedGeofences;
+		FacilityCoordinates[] myFacilities;
 		bool mGeoIntentUp;
 
 		protected override void OnCreate (Bundle bundle)
@@ -58,10 +59,17 @@ namespace ROMPCheckIn
 					editor.PutString ("SessionKey", sessionKey);
 					editor.Commit ();
 				}
-				connectedGeofences = new List<ROMPGeofence> ();
-				CreateGeofences ();
-				FindViewById<TextView> (Resource.Id.btnBegin).Click += BeginGeofencing;
-				BuildGoogleApiClient ();
+				var locSvc = new ROMPLocation ();
+				myFacilities = locSvc.GetLocations (sessionKey, groupID);
+				if (myFacilities.Count () > 0) {
+					connectedGeofences = new List<ROMPGeofence> ();
+					CreateGeofences ();
+					FindViewById<Button> (Resource.Id.btnBegin).Click += BeginGeofencing;
+					BuildGoogleApiClient ();
+				} else {
+					FindViewById<Button> (Resource.Id.btnBegin).Visibility = ViewStates.Invisible;
+					FindViewById<TextView> (Resource.Id.lblConfirm).Text = "You have no locations to check in to. Please start the application during a rotation to properly utilize the functionality. Thank you.";
+				}
 			}
 		}
 
@@ -76,7 +84,7 @@ namespace ROMPCheckIn
 		protected override void OnStart ()
 		{
 			base.OnStart ();
-			if (!mGeoIntentUp) {
+			if (!mGeoIntentUp && myFacilities.Count() > 0) {
 				apiClient.Connect ();
 			}
 		}
@@ -162,12 +170,7 @@ namespace ROMPCheckIn
 		}
 
 		public void CreateGeofences ()
-		{
-			string sessionKey = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private).GetString ("SessionKey", "");
-			int groupID = Intent.GetIntExtra ("GroupID", 0);
-			int userID = Intent.GetIntExtra ("UserID", 0);
-			var locSvc = new ROMPLocation ();
-			FacilityCoordinates[] myFacilities = locSvc.GetLocations (sessionKey, groupID);
+		{			
 			foreach (FacilityCoordinates fc in myFacilities) {
 				geofenceList.Add(new GeofenceBuilder ()
 					.SetRequestId (fc.LocationID.ToString())

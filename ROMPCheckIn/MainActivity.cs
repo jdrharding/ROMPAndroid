@@ -19,7 +19,7 @@ using Android.Gms.Common;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In", MainLauncher = true, Icon = "@drawable/icon")]
+	[Activity (Label = "ROMP Check-In", MainLauncher = true, Icon = "@drawable/icon", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]
 	public class MainActivity : Activity
 	{
 		ISharedPreferences mSharedPreferences;
@@ -79,7 +79,7 @@ namespace ROMPCheckIn
 								nextActivity.PutExtra("GroupID", loginResp.GroupID);
 								nextActivity.PutExtra("UserID", loginResp.UserID);
 								StartActivity(nextActivity);
-								System.Environment.Exit(0); 
+								Finish();
 							}
 						} else {
 							var myHandler = new Handler();
@@ -104,7 +104,10 @@ namespace ROMPCheckIn
 			builder.SetTitle ("Exit.");
 			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
 			builder.SetMessage("Exit App?");
-			builder.SetPositiveButton("OK", (s, e) => { Finish(); });
+			builder.SetPositiveButton("OK", (s, e) => 
+				{ 
+					System.Environment.Exit(0); 
+				});
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
 		}
