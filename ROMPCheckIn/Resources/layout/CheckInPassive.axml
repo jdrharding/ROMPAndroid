@@ -5,30 +5,28 @@
     android:layout_height="fill_parent"
     android:background="#ff7f7f7f">
     <TextView
-        android:text="Press the Button Below to Begin Passive Checkins."
+        android:text="Press the Button Below to Begin Passive Check-Ins."
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/lblConfirm"
         android:layout_marginTop="100dp"
         android:gravity="center"
-        android:textColor="#ff000000" />
+        android:textColor="#ff000000"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp" />
     <Button
         android:text="Begin"
-        android:layout_marginTop="15.0dp"
-        android:layout_width="match_parent"
+        android:layout_marginTop="50dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:id="@+id/btnBegin"
-        android:layout_marginRight="15dp"
-        android:layout_marginLeft="15dp" />
-    <TextView
-        android:text="When you enter a 1km radius surrounding the facility, this application will Check In for you. It will only check in once until you leave the premises and log the next time you enter."
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:layout_width="match_parent"
+        android:layout_gravity="center" />
+    <Button
+        android:text="Close App"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:id="@+id/lblText"
-        android:layout_marginTop="15.0dp"
-        android:gravity="center"
-        android:textColor="#ff000000"
-        android:visibility="invisible" />
+        android:id="@+id/btnCloseP"
+        android:layout_marginTop="25dp"
+        android:layout_gravity="center" />
 </LinearLayout>

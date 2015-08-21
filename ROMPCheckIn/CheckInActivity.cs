@@ -19,7 +19,7 @@ using Android.Locations;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]			
+	[Activity (Label = "ROMP Check-In")]			
 	public class CheckInActivity : Activity, ILocationListener
 	{
 
@@ -43,6 +43,7 @@ namespace ROMPCheckIn
 			var locSvc = new ROMPLocation ();
 			//myFacilities[] = new FacilityCoordinates();
 			myFacilities = locSvc.GetLocations (sessionKey, groupID);
+			FindViewById<Button> (Resource.Id.btnCloseA).Click += btnCloseA_OnClick;
 			if (myFacilities.Count () > 0) {
 				FindViewById<Button> (Resource.Id.btnCheckIn).Click += btnCheckIn_OnClick;
 				InitializeLocationManager();
@@ -74,6 +75,22 @@ namespace ROMPCheckIn
 
 		public void OnLocationChanged(Location location) {
 			_currentLocation = location;
+		}
+
+		public void btnCloseA_OnClick(object sender, EventArgs EventArgs)
+		{
+			var builder = new Android.App.AlertDialog.Builder(this);
+			builder.SetTitle ("Exit.");
+			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
+			builder.SetMessage("Exit App?");
+			builder.SetPositiveButton("OK", (s, e) => 
+				{ 
+					Finish();
+					Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+					//System.Environment.Exit(0);
+				});
+			builder.SetNegativeButton("Cancel", (s, e) => { });
+			builder.Create().Show();
 		}
 
 		public void btnCheckIn_OnClick(object sender, EventArgs eventArgs)
@@ -119,7 +136,7 @@ namespace ROMPCheckIn
 							var locSvc = new ROMPLocation ();
 							string result = locSvc.CheckOutWithoutLocation(sessionKey);
 							if (result == "Success"){
-								absResult = "Check In Successful";
+								absResult = "Check Out Successful";
 								button.Text = "Check In";
 							} else {
 								absResult = "An Unexpected Error Occurred. Try Again";
@@ -149,7 +166,7 @@ namespace ROMPCheckIn
 							var locSvc = new ROMPLocation ();
 							string result = locSvc.CheckOutWithoutLocation(sessionKey);
 							if (result == "Success"){
-								absResult = "Check In Successful";
+								absResult = "Check Out Successful";
 								button.Text = "Check In";
 							} else {
 								absResult = "An Unexpected Error Occurred. Try Again";
@@ -205,7 +222,9 @@ namespace ROMPCheckIn
 			builder.SetMessage("Exit App?");
 			builder.SetPositiveButton("OK", (s, e) => 
 				{ 
-					System.Environment.Exit(0);
+					Finish();
+					Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+					//System.Environment.Exit(0);
 				});
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();

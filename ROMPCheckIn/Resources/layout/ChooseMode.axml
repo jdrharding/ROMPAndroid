@@ -24,7 +24,7 @@
         android:layout_gravity="center"
         android:layout_marginTop="40dp" />
     <TextView
-        android:text="Passive Mode enables this app to automatically inform the ROMP System that you have entered the premises of your learning placement. This mode requires no further interaction with the application."
+        android:text="Automatically signs in when this device enters the premises of your ROMP rotation."
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
         android:layout_gravity="center"
         android:layout_marginTop="40dp" />
     <TextView
-        android:text="Active Mode requires you to check in when you have arrived on the premises of your learning placement. Failure to check in may have a direct effect on your funding which is based on learner attendance."
+        android:text="Manually sign in when you arrive on the premises of your ROMP rotation."
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -57,5 +57,16 @@
         android:layout_height="wrap_content"
         android:id="@+id/btnChoose"
         android:layout_gravity="center"
-        android:layout_marginTop="90.1dp" />
+        android:layout_marginTop="60dp" />
+    <TextView
+        android:text="Note: A log of your education activity during your rotation is mandatory for all ROMP rotations, and is required for learner funding from ROMP."
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/lblDisclaimer"
+        android:textColor="#ff000000"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:gravity="center"
+        android:layout_marginTop="30dp" />
 </LinearLayout>

@@ -5,7 +5,7 @@
     android:layout_height="fill_parent"
     android:background="#ff7f7f7f">
     <TextView
-        android:text="Click the button below to Check In at your current facility. If you attempt to check in while not within a 1km radius of the facility, it will not be recorded."
+        android:text="Click the button below to Check In at the site of your ROMP rotation. This device must be within a 1km radius of the facility in order for the Check-In to be logged. Remember to Check-Out before leaving the facility."
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,6 +20,13 @@
         android:id="@+id/btnCheckIn"
         android:layout_marginTop="50dp"
         android:layout_gravity="center" />
+    <Button
+        android:text="Close App"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnCloseA"
+        android:layout_gravity="center"
+        android:layout_marginTop="25dp" />
     <TextView
         android:text=""
         android:textAppearance="?android:attr/textAppearanceMedium"

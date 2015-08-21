@@ -21,7 +21,7 @@ using Android.Support.V7.App;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]			
+	[Activity (Label = "ROMP Check-In")]			
 	public class CheckInPassiveActivity : Activity, IGoogleApiClientConnectionCallbacks, IGoogleApiClientOnConnectionFailedListener, IResultCallback
 	{
 		IGoogleApiClient apiClient;
@@ -45,8 +45,7 @@ namespace ROMPCheckIn
 					new Intent (this, Java.Lang.Class.FromType (typeof(GeofenceTransitionsIntentService))),
 					PendingIntentFlags.UpdateCurrent);
 				FindViewById<Button>(Resource.Id.btnBegin).Visibility = ViewStates.Invisible;
-				FindViewById<TextView>(Resource.Id.lblConfirm).Visibility = ViewStates.Invisible;
-				FindViewById<TextView>(Resource.Id.lblText).Visibility = ViewStates.Visible;
+				FindViewById<TextView> (Resource.Id.lblConfirm).SetText ("A record that you have checked-in will be made in the log of your education activity for this ROMP rotation when this device enters a 1km radius surrounding the facility of your ROMP rotation.", TextView.BufferType.Normal);
 			} else {
 				geofenceList = new List<IGeofence> ();
 				geofenceRequestIntent = null;
@@ -60,6 +59,7 @@ namespace ROMPCheckIn
 					editor.Commit ();
 				}
 				var locSvc = new ROMPLocation ();
+				FindViewById<Button> (Resource.Id.btnCloseP).Click += btnCloseP_OnClick;
 				myFacilities = locSvc.GetLocations (sessionKey, groupID);
 				if (myFacilities.Count () > 0) {
 					connectedGeofences = new List<ROMPGeofence> ();
@@ -187,6 +187,29 @@ namespace ROMPCheckIn
 			apiClient = null;
 		}
 
+		public void btnCloseP_OnClick(object sender, EventArgs EventArgs)
+		{
+			var builder = new Android.App.AlertDialog.Builder(this);
+			builder.SetTitle ("Exit.");
+			builder.SetIcon (Android.Resource.Drawable.IcDialogAlert);
+			builder.SetMessage("Exit App?");
+			builder.SetPositiveButton("OK", (s, e) => 
+				{ 
+					mSharedPreferences = this.GetSharedPreferences ("CheckInPrefs", FileCreationMode.Private);
+					ISharedPreferencesEditor editor = mSharedPreferences.Edit ();
+					editor.Remove ("SessionKey");
+					editor.Commit ();
+					if (!(geofenceRequestIntent == null)) {
+						geofenceRequestIntent.Cancel ();
+					}
+					Finish();
+					Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+					//System.Environment.Exit(0);
+				});
+			builder.SetNegativeButton("Cancel", (s, e) => { });
+			builder.Create().Show();
+		}
+
 		public override void OnBackPressed() {
 			var builder = new Android.App.AlertDialog.Builder(this);
 			builder.SetTitle ("Exit.");
@@ -201,7 +224,9 @@ namespace ROMPCheckIn
 					if (!(geofenceRequestIntent == null)) {
 						geofenceRequestIntent.Cancel ();
 					}
-					System.Environment.Exit(0);
+					Finish();
+					Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+					//System.Environment.Exit(0);
 				});
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();
@@ -233,16 +258,13 @@ namespace ROMPCheckIn
 						Android.Widget.Toast.MakeText (this, geofenceAnnounce, Android.Widget.ToastLength.Long).Show ();
 					});
 					FindViewById<Button>(Resource.Id.btnBegin).Visibility = ViewStates.Invisible;
-					FindViewById<TextView>(Resource.Id.lblConfirm).Visibility = ViewStates.Invisible;
-					FindViewById<TextView>(Resource.Id.lblText).Visibility = ViewStates.Visible;
+					FindViewById<TextView>(Resource.Id.lblConfirm).SetText("A record that you have checked-in will be made in the log of your education activity for this ROMP rotation when this device enters a 1km radius surrounding the facility of your ROMP rotation.", TextView.BufferType.Normal);
 					geofenceRequestIntent = PendingIntent.GetService (this, 0,
 						new Intent (this, Java.Lang.Class.FromType (typeof(GeofenceTransitionsIntentService))),
 						PendingIntentFlags.UpdateCurrent);
 				} else {
 					FindViewById<Button>(Resource.Id.btnBegin).Visibility = ViewStates.Invisible;
-					FindViewById<TextView>(Resource.Id.lblConfirm).Visibility = ViewStates.Invisible;
-					FindViewById<TextView>(Resource.Id.lblText).SetText("No Rotations Available, Please Try Within Your Scheduled Rotation Dates", TextView.BufferType.Normal);
-					FindViewById<TextView>(Resource.Id.lblText).Visibility = ViewStates.Visible;
+					FindViewById<TextView>(Resource.Id.lblConfirm).SetText("No Rotations Available, Please Try Within Your Scheduled Rotation Dates", TextView.BufferType.Normal);
 				}
 			} catch (SecurityException securityEx) {
 				logSecurityException (securityEx);

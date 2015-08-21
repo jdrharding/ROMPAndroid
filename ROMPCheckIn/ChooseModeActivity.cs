@@ -14,7 +14,7 @@ using Android.Widget;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]			
+	[Activity (Label = "Check-In Mode")]			
 	public class ChooseModeActivity : Activity
 	{
 		protected override void OnCreate (Bundle bundle)
@@ -83,7 +83,9 @@ namespace ROMPCheckIn
 			builder.SetMessage("Exit App?");
 			builder.SetPositiveButton("OK", (s, e) =>  
 				{ 
-					System.Environment.Exit(0);
+					Finish();
+					Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+					//System.Environment.Exit(0);
 				});
 			builder.SetNegativeButton("Cancel", (s, e) => { });
 			builder.Create().Show();

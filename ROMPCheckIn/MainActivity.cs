@@ -19,7 +19,7 @@ using Android.Gms.Common;
 
 namespace ROMPCheckIn
 {
-	[Activity (Label = "ROMP Check-In", MainLauncher = true, Icon = "@drawable/icon", LaunchMode = Android.Content.PM.LaunchMode.SingleInstance)]
+	[Activity (Label = "ROMP Check-In", MainLauncher = true, Icon = "@drawable/icon")]
 	public class MainActivity : Activity
 	{
 		ISharedPreferences mSharedPreferences;
